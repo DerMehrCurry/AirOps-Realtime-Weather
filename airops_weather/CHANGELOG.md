@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.7.2.1] - 2026-07-24
+
+### Fixed
+
+- corrected the FiveM server-script initialization order
+- load the provider registry before configuration validation and concrete providers
+- prevent `AirOpsWeather.Providers` from being `nil` while registering Open-Meteo
+- prevent the follow-up `AirOpsWeather.Validation` startup failure
+
+### Compatibility
+
+- no configuration changes are required
+- no public exports or SDK methods were changed
+- all v0.7.2 time synchronization fixes remain included
+
 ## [0.7.2] - 2026-07-24
 
 ### Fixed

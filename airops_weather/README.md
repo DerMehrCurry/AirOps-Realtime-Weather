@@ -13,9 +13,17 @@ Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Stabilization Patch – v0.7.2
+## Critical Initialization Hotfix – v0.7.2.1
 
-v0.7.2 closes the v0.7 development cycle with targeted correctness fixes:
+v0.7.2.1 fixes a startup failure caused by the provider registry being loaded after modules that depend on it.
+
+- provider registry now initializes before validation and concrete providers
+- fixes `AirOpsWeather.Providers` being `nil` during Open-Meteo registration
+- fixes the resulting `AirOpsWeather.Validation` startup error
+- no configuration, API, SDK, or export changes
+
+The stabilization improvements from v0.7.2 remain included:
+
 
 - stable delta detection without timestamp-only changes
 - real pretty JSON output
@@ -26,7 +34,7 @@ v0.7.2 closes the v0.7 development cycle with targeted correctness fixes:
 
 No public export or SDK v1 method was removed.
 
-## Version 0.7.2
+## Version 0.7.2.1
 
 Diese Entwicklungsversion enthält:
 
