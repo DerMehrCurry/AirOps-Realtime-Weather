@@ -20,7 +20,7 @@ local function usage(source)
     reply(source, 'Verwendung: /airops weather <typ> [dauer_min]')
     reply(source, 'Verwendung: /airops time <stunde> <minute> [dauer_min]')
     reply(source, 'Verwendung: /airops realtime <weather|time|all>')
-    reply(source, 'Verwendung: /airops status')
+    reply(source, 'Diagnose: /airops <status|health|forecast|warnings|metrics|integrations>')
 end
 
 local function validateDuration(value)
@@ -54,6 +54,8 @@ AddEventHandler('onResourceStart', function(resourceName)
         return
     end
 
+    local valid = AirOpsWeather.Validation.Run()
+
     AirOpsWeather.Info(
         'Starting v%s for %s (%.4f, %.4f).',
         AirOpsWeather.Version,
@@ -61,6 +63,13 @@ AddEventHandler('onResourceStart', function(resourceName)
         Config.Location.latitude,
         Config.Location.longitude
     )
+    if not valid then
+        AirOpsWeather.Error(
+            'Critical configuration errors detected. Provider startup has been blocked.'
+        )
+        return
+    end
+
     AirOpsWeather.UpdateWeather()
 
     SetTimeout(1000, function()
@@ -94,6 +103,116 @@ RegisterCommand(Config.Override.command or 'airops', function(source, args)
             override.weather.active and ('Override ' .. tostring(override.weather.value)) or 'Realtime',
             override.time.active and 'Override' or 'Realtime'
         ))
+        return
+    end
+
+    local diagnosticActions = {
+        health = true,
+        forecast = true,
+        warnings = true,
+        metrics = true,
+        integrations = true
+    }
+
+    if diagnosticActions[action] then
+        if not hasAce(source, 'airops.weather.status') then
+            reply(source, 'Keine Berechtigung: airops.weather.status')
+            return
+        end
+
+        if action == 'health' then
+            local health = AirOpsWeather.Diagnostics.GetHealth()
+            reply(
+                source,
+                ('Health: %s | Provider: %s | Cache: %ss | Probleme: %d')
+                    :format(
+                        health.status,
+                        health.provider.available and 'online' or 'offline',
+                        health.cache.ageSeconds,
+                        #health.issues
+                    )
+            )
+
+            for _, issue in ipairs(health.issues) do
+                reply(
+                    source,
+                    ('[%s] %s: %s')
+                        :format(issue.severity, issue.code, issue.message)
+                )
+            end
+        elseif action == 'forecast' then
+            local forecast = AirOpsWeather.Diagnostics.GetForecast()
+            reply(source, ('Forecast-Timeline: %d Einträge'):format(forecast.count))
+
+            local maximum = tonumber(
+                Config.Diagnostics.maximumForecastEntriesInChat
+            ) or 8
+
+            for index = 1, math.min(maximum, forecast.count) do
+                local entry = forecast.entries[index]
+                reply(
+                    source,
+                    ('%d. %s in %ds%s -> %s')
+                        :format(
+                            index,
+                            entry.weather,
+                            entry.secondsFromNow,
+                            entry.intermediate and ' (Übergang)' or '',
+                            entry.targetWeather or entry.weather
+                        )
+                )
+            end
+        elseif action == 'warnings' then
+            local warnings = AirOpsWeather.API.GetWarnings()
+            reply(source, ('Aktive Warnungen: %d'):format(#warnings))
+
+            for _, warning in ipairs(warnings) do
+                reply(
+                    source,
+                    ('[%s] %s: %s')
+                        :format(warning.severity, warning.code, warning.message)
+                )
+            end
+        elseif action == 'metrics' then
+            local metrics = AirOpsWeather.Metrics.Get()
+            reply(
+                source,
+                ('Requests %d/%d | Fehler %d | Timeouts %d | Broadcasts %d | unterdrückt %d')
+                    :format(
+                        metrics.apiSuccesses,
+                        metrics.apiRequests,
+                        metrics.apiFailures,
+                        metrics.apiTimeouts,
+                        metrics.broadcasts,
+                        metrics.suppressedBroadcasts
+                    )
+            )
+            reply(
+                source,
+                ('Antwortzeit zuletzt/Ø: %d/%dms | Wetterwechsel: %d | Uptime: %ds')
+                    :format(
+                        metrics.lastRequestDurationMilliseconds,
+                        metrics.averageRequestDurationMilliseconds,
+                        metrics.weatherChanges,
+                        metrics.uptimeSeconds
+                    )
+            )
+        elseif action == 'integrations' then
+            local integrations =
+                AirOpsWeather.Diagnostics.GetIntegrations().naturalDisasters
+
+            reply(
+                source,
+                ('Natural Disasters | Resource: %s | verfügbar: %s | externe Kontrolle: %s | Controller: %s')
+                    :format(
+                        integrations.resourceName,
+                        tostring(integrations.available),
+                        tostring(integrations.externalControl),
+                        tostring(integrations.controller or 'none')
+                    )
+            )
+        end
+
         return
     end
 
@@ -154,6 +273,74 @@ RegisterCommand(Config.Override.command or 'airops', function(source, args)
     usage(source)
 end, false)
 
+
+RegisterCommand('airops_weather_health', function(source)
+    if not hasAce(source, 'airops.weather.status') then return end
+
+    local health = AirOpsWeather.Diagnostics.GetHealth()
+    AirOpsWeather.Info(
+        'Health | status=%s | provider=%s | cacheAge=%ds | stale=%s | issues=%d',
+        health.status,
+        health.provider.available and 'available' or 'unavailable',
+        health.cache.ageSeconds,
+        tostring(health.cache.stale),
+        #health.issues
+    )
+
+    for _, issue in ipairs(health.issues) do
+        AirOpsWeather.Warn(
+            'Health issue | severity=%s | code=%s | %s',
+            issue.severity,
+            issue.code,
+            issue.message
+        )
+    end
+end, false)
+
+RegisterCommand('airops_weather_forecast', function(source)
+    if not hasAce(source, 'airops.weather.status') then return end
+
+    local forecast = AirOpsWeather.Diagnostics.GetForecast()
+    AirOpsWeather.Info(
+        'Forecast diagnostics | generation=%d | entries=%d',
+        forecast.generation,
+        forecast.count
+    )
+
+    for _, entry in ipairs(forecast.entries) do
+        AirOpsWeather.Info(
+            'Forecast #%d | weather=%s | in=%ds | type=%s | target=%s | providerTime=%s',
+            entry.index,
+            entry.weather,
+            entry.secondsFromNow,
+            entry.intermediate and 'transition' or 'target',
+            tostring(entry.targetWeather),
+            tostring(entry.providerTime)
+        )
+    end
+end, false)
+
+RegisterCommand('airops_weather_metrics', function(source)
+    if not hasAce(source, 'airops.weather.status') then return end
+    ExecuteCommand('airops_weather_status')
+end, false)
+
+RegisterCommand('airops_weather_integrations', function(source)
+    if not hasAce(source, 'airops.weather.status') then return end
+
+    local integration =
+        AirOpsWeather.Diagnostics.GetIntegrations().naturalDisasters
+
+    AirOpsWeather.Info(
+        'Natural Disasters | resource=%s | available=%s | externalControl=%s | controller=%s | lastObserved=%s',
+        integration.resourceName,
+        tostring(integration.available),
+        tostring(integration.externalControl),
+        tostring(integration.controller),
+        tostring(integration.lastObservedWeather)
+    )
+end, false)
+
 RegisterCommand('airops_weather_status', function(source)
     if not hasAce(source, 'airops.weather.status') then
         return
@@ -167,7 +354,8 @@ RegisterCommand('airops_weather_status', function(source)
         and AirOpsWeather.Integrations.GetNaturalDisastersState()
         or nil
 
-    local health = AirOpsWeather.CheckCacheHealth()
+    local cacheHealth = AirOpsWeather.CheckCacheHealth()
+    local health = AirOpsWeather.Diagnostics.GetHealth()
     local metrics = AirOpsWeather.Metrics.Get()
 
     AirOpsWeather.Info(
@@ -176,11 +364,18 @@ RegisterCommand('airops_weather_status', function(source)
         cache.currentWeather,
         override.weather.active and 'manual' or 'realtime',
         override.time.active and 'manual' or 'realtime',
-        health.ageSeconds,
-        tostring(health.stale),
+        cacheHealth.ageSeconds,
+        tostring(cacheHealth.stale),
         #cache.timeline,
         nextEntry and (nextEntry.weather .. ' in ' .. math.max(0, nextEntry.at - os.time()) .. 's' .. (nextEntry.intermediate and ' (transition)' or ' (target)')) or 'none',
         cache.nextPollAt > 0 and math.max(0, cache.nextPollAt - os.time()) or -1
+    )
+
+    AirOpsWeather.Info(
+        'Health | status=%s | issues=%d | configuration=%s',
+        health.status,
+        #health.issues,
+        health.configuration.valid and 'valid' or 'invalid'
     )
 
     if integration then

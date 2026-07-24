@@ -1,5 +1,5 @@
 AirOpsWeather = AirOpsWeather or {}
-AirOpsWeather.Version = '0.5.0'
+AirOpsWeather.Version = '0.6.0'
 AirOpsWeather.Events = {
     requestSync = 'airops_weather:server:requestSync',
     syncState = 'airops_weather:client:syncState',
@@ -9,21 +9,56 @@ AirOpsWeather.Events = {
     forecastChanged = 'airops_weather:forecastChanged',
     overrideStarted = 'airops_weather:overrideStarted',
     overrideEnded = 'airops_weather:overrideEnded',
-    warningsChanged = 'airops_weather:warningsChanged'
+    warningsChanged = 'airops_weather:warningsChanged',
+    providerUnavailable = 'airops_weather:providerUnavailable',
+    providerRecovered = 'airops_weather:providerRecovered',
+    healthChanged = 'airops_weather:healthChanged'
 }
 
+local function fallbackLog(level, message, ...)
+    if select('#', ...) > 0 then
+        message = string.format(message, ...)
+    end
+
+    print(('[AirOps Weather][%s] %s'):format(level, message))
+end
+
+function AirOpsWeather.Trace(message, ...)
+    if AirOpsWeather.Log then
+        return AirOpsWeather.Log('TRACE', message, ...)
+    end
+end
+
 function AirOpsWeather.Debug(message, ...)
-    if not Config.General.debug then return end
-    if select('#', ...) > 0 then message = string.format(message, ...) end
-    print(('[AirOps Weather][DEBUG] %s'):format(message))
+    if AirOpsWeather.Log then
+        return AirOpsWeather.Log('DEBUG', message, ...)
+    end
+
+    if Config.General.debug then
+        fallbackLog('DEBUG', message, ...)
+    end
 end
 
 function AirOpsWeather.Info(message, ...)
-    if select('#', ...) > 0 then message = string.format(message, ...) end
-    print(('[AirOps Weather] %s'):format(message))
+    if AirOpsWeather.Log then
+        return AirOpsWeather.Log('INFO', message, ...)
+    end
+
+    fallbackLog('INFO', message, ...)
 end
 
 function AirOpsWeather.Warn(message, ...)
-    if select('#', ...) > 0 then message = string.format(message, ...) end
-    print(('[AirOps Weather][WARN] %s'):format(message))
+    if AirOpsWeather.Log then
+        return AirOpsWeather.Log('WARN', message, ...)
+    end
+
+    fallbackLog('WARN', message, ...)
+end
+
+function AirOpsWeather.Error(message, ...)
+    if AirOpsWeather.Log then
+        return AirOpsWeather.Log('ERROR', message, ...)
+    end
+
+    fallbackLog('ERROR', message, ...)
 end

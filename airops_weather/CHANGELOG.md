@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.6.0] - 2026-07-24
+
+### Added
+
+- health states `HEALTHY`, `DEGRADED` and `UNHEALTHY`
+- `GetHealth`, `GetDiagnostics`, `GetIntegrations` and `GetForecastDiagnostics` exports
+- automatic startup configuration validation
+- `ValidateConfiguration` export
+- configurable logging levels `ERROR`, `WARN`, `INFO`, `DEBUG` and `TRACE`
+- repeated-log suppression and summary messages
+- provider unavailable and provider recovered events
+- health change event
+- detailed forecast diagnostics
+- standalone admin and console diagnostic commands
+- safe configuration snapshot in diagnostics
+
+### Changed
+
+- provider startup is blocked when configuration validation has critical errors
+- status output now includes overall health and configuration validity
+- `/airops` supports health, forecast, warnings, metrics and integrations
+- README version references and roadmap were reviewed and corrected
+
+### Fixed
+
+- corrected the outdated `0.3.0` development-version note at the end of README
+- provider recovery is explicitly detected after request failures
+- repeated identical provider errors no longer flood the console
+
 ## [0.5.0] - 2026-07-24
 
 ### Added

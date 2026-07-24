@@ -2,6 +2,8 @@ AirOpsWeather = AirOpsWeather or {}
 
 local activeRequestId = 0
 local requestActive = false
+local providerUnavailable = false
+local lastProviderError = nil
 
 local function interval(weatherClass)
     if weatherClass == 'stable' then
@@ -23,6 +25,49 @@ local function retry(count)
             * (Config.Retry.multiplier ^ math.max(0, count - 1)),
         Config.Retry.maximumSeconds
     )
+end
+
+function AirOpsWeather.GetSchedulerState()
+    return {
+        requestActive = requestActive,
+        activeRequestId = activeRequestId,
+        providerUnavailable = providerUnavailable,
+        lastProviderError = lastProviderError
+    }
+end
+
+local function markProviderUnavailable(reason)
+    lastProviderError = reason
+
+    if providerUnavailable then
+        return
+    end
+
+    providerUnavailable = true
+    TriggerEvent(AirOpsWeather.Events.providerUnavailable, {
+        reason = reason,
+        occurredAt = os.time()
+    })
+end
+
+local function markProviderRecovered()
+    if not providerUnavailable then
+        return
+    end
+
+    providerUnavailable = false
+    local recovery = {
+        previousError = lastProviderError,
+        recoveredAt = os.time(),
+        failures = AirOpsWeather.GetCache().failureCount
+    }
+    lastProviderError = nil
+
+    AirOpsWeather.Info(
+        'Weather provider recovered after %d consecutive failure(s).',
+        recovery.failures
+    )
+    TriggerEvent(AirOpsWeather.Events.providerRecovered, recovery)
 end
 
 function AirOpsWeather.ScheduleNextUpdate(seconds)
@@ -79,9 +124,11 @@ function AirOpsWeather.UpdateWeather()
         local failures = AirOpsWeather.RegisterFailure()
         local wait = retry(failures)
 
+        local reason = ('Weather request timed out after %d seconds.'):format(timeoutSeconds)
+        markProviderUnavailable(reason)
         AirOpsWeather.Warn(
-            'Weather request timed out after %d seconds. Retry in %d seconds.',
-            timeoutSeconds,
+            '%s Retry in %d seconds.',
+            reason,
             wait
         )
         AirOpsWeather.CheckCacheHealth()
@@ -105,10 +152,12 @@ function AirOpsWeather.UpdateWeather()
             local failures = AirOpsWeather.RegisterFailure()
             local wait = retry(failures)
 
+            local reason = tostring(errorMessage or 'unknown')
+            markProviderUnavailable(reason)
             AirOpsWeather.Warn(
                 'Weather request failed (%d): %s. Retry in %d seconds.',
                 failures,
-                errorMessage or 'unknown',
+                reason,
                 wait
             )
             AirOpsWeather.CheckCacheHealth()
@@ -125,9 +174,11 @@ function AirOpsWeather.UpdateWeather()
             local failures = AirOpsWeather.RegisterFailure()
             local wait = retry(failures)
 
+            local reason = tostring(changedOrError or 'unknown')
+            markProviderUnavailable(reason)
             AirOpsWeather.Warn(
                 'Response processing failed: %s. Retry in %d seconds.',
-                changedOrError or 'unknown',
+                reason,
                 wait
             )
             AirOpsWeather.ScheduleNextUpdate(wait)
@@ -135,6 +186,7 @@ function AirOpsWeather.UpdateWeather()
         end
 
         AirOpsWeather.Metrics.RecordRequest(true, duration, false)
+        markProviderRecovered()
         AirOpsWeather.BroadcastState(-1, changedOrError == true)
 
         local cache = AirOpsWeather.GetCache()

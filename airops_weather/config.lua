@@ -2,7 +2,26 @@ Config = {}
 
 Config.General = {
     locale = 'de',
+
+    -- Kept for compatibility. Config.Logging.level takes precedence.
     debug = false
+}
+
+Config.Logging = {
+    -- ERROR, WARN, INFO, DEBUG or TRACE
+    level = 'INFO',
+
+    -- Prevent repeated provider and integration errors from flooding the console.
+    suppressRepeatedMessages = true,
+    repeatWindowSeconds = 300,
+    repeatSummaryThreshold = 2
+}
+
+Config.Diagnostics = {
+    enabled = true,
+    command = 'airops',
+    maximumForecastEntriesInChat = 8,
+    exposeConfigurationSnapshot = true
 }
 
 Config.Location = {

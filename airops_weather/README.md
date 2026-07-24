@@ -4,7 +4,7 @@ Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Version 0.5.0
+## Version 0.6.0
 
 Diese Entwicklungsversion enthält:
 
@@ -31,6 +31,11 @@ Diese Entwicklungsversion enthält:
 - standardisierte Wetterprofile mit Straße, Fluglage und Warnungen
 - ereignisbasierte Zustands-, Forecast- und Override-Änderungen
 - Luftfeuchtigkeit und Luftdruck aus Open-Meteo
+- Health-System mit `HEALTHY`, `DEGRADED` und `UNHEALTHY`
+- automatische Konfigurationsvalidierung beim Start
+- erweiterte Admin- und Konsolendiagnosen
+- Provider-Ausfall-, Recovery- und Health-Events
+- Logging-Stufen und Unterdrückung wiederholter Fehlermeldungen
 
 ## Installation
 
@@ -224,9 +229,165 @@ exports['airops_weather']:setExternalWeatherControl(false)
 
 
 
+
+## Diagnostics & Admin Tools
+
+v0.6.0 erweitert AirOps um ein frameworkfreies Health-, Logging- und
+Diagnosesystem.
+
+### Health-Status
+
+```lua
+local health = exports['airops_weather']:GetHealth()
+```
+
+Mögliche Zustände:
+
+```text
+HEALTHY
+DEGRADED
+UNHEALTHY
+```
+
+Beispiel:
+
+```lua
+{
+    status = 'DEGRADED',
+    provider = {
+        available = false,
+        lastError = 'HTTP 500',
+        consecutiveFailures = 3
+    },
+    cache = {
+        valid = true,
+        stale = true,
+        ageSeconds = 1900
+    },
+    issues = {
+        {
+            code = 'PROVIDER_UNAVAILABLE',
+            severity = 'warning'
+        }
+    }
+}
+```
+
+### Vollständiger Diagnose-Snapshot
+
+```lua
+local diagnostics =
+    exports['airops_weather']:GetDiagnostics()
+```
+
+Der Snapshot enthält:
+
+- Health-Status
+- aktuellen API-Zustand
+- Performance-Metriken
+- Forecast-Diagnose
+- Integrationsstatus
+- Ergebnis der Konfigurationsvalidierung
+- sichere Konfigurationsübersicht ohne Zugangsdaten
+
+Weitere Exports:
+
+```lua
+exports['airops_weather']:GetIntegrations()
+exports['airops_weather']:GetForecastDiagnostics()
+exports['airops_weather']:ValidateConfiguration()
+```
+
+### Konsolenbefehle
+
+```text
+airops_weather_status
+airops_weather_health
+airops_weather_forecast
+airops_weather_metrics
+airops_weather_integrations
+```
+
+### Befehle im Spiel
+
+```text
+/airops status
+/airops health
+/airops forecast
+/airops warnings
+/airops metrics
+/airops integrations
+```
+
+Für Diagnosebefehle wird benötigt:
+
+```cfg
+add_ace group.admin airops.weather.status allow
+```
+
+### Konfigurationsvalidierung
+
+Beim Start werden unter anderem geprüft:
+
+- Koordinaten
+- Provider
+- Forecast-Dauer
+- Polling- und Retry-Werte
+- Wetterzuordnungen
+- Warn- und Fluggrenzwerte
+- Natural-Disasters-Konfiguration
+- widersprüchliche Schwellenwerte
+
+Bei kritischen Konfigurationsfehlern wird der Provider-Start blockiert. Die
+Fehler werden eindeutig mit Code und Beschreibung ausgegeben.
+
+### Logging
+
+```lua
+Config.Logging = {
+    level = 'INFO',
+    suppressRepeatedMessages = true,
+    repeatWindowSeconds = 300,
+    repeatSummaryThreshold = 2
+}
+```
+
+Verfügbare Stufen:
+
+```text
+ERROR
+WARN
+INFO
+DEBUG
+TRACE
+```
+
+Wiederholte identische Meldungen werden zusammengefasst, um Konsolen-Spam bei
+Provider- oder Integrationsausfällen zu vermeiden.
+
+### Provider- und Health-Events
+
+```lua
+AddEventHandler('airops_weather:providerUnavailable', function(data)
+    print(data.reason)
+end)
+
+AddEventHandler('airops_weather:providerRecovered', function(data)
+    print(data.previousError)
+end)
+
+AddEventHandler(
+    'airops_weather:healthChanged',
+    function(oldStatus, newStatus, health)
+        print(oldStatus, newStatus)
+    end
+)
+```
+
+
 ## Public API
 
-v0.5.0 macht AirOps zur zentralen Wetter- und Zeitquelle für andere Ressourcen.
+Seit v0.5.0 macht AirOps sich als zentrale Wetter- und Zeitquelle für andere Ressourcen nutzbar.
 Die API-Version innerhalb der Rückgabewerte lautet aktuell `1`.
 
 ### Server-Exports
@@ -253,7 +414,7 @@ Beispielstruktur:
 ```lua
 {
     apiVersion = 1,
-    resourceVersion = '0.5.0',
+    resourceVersion = '0.6.0',
     weather = 'RAIN',
     class = 'precipitation',
     intensity = 0.42,
@@ -399,7 +560,7 @@ Config.API = {
 
 ## Performance und Stabilität
 
-v0.4.0 reduziert unnötige Dauerarbeit und macht den internen Zustand messbar.
+Seit v0.4.0 reduziert AirOps unnötige Dauerarbeit und macht den internen Zustand messbar.
 
 ### Bedingte Broadcasts
 
@@ -577,6 +738,6 @@ Vor einem stabilen v1.0-Release werden zusätzlich Resmon-, Serverlast-, Langzei
 - Aktuell ist nur Open-Meteo als Provider enthalten.
 - Andere aktive Zeit- oder Wettersysteme können Konflikte verursachen.
 - Natural Disasters wird unterstützt; weitere Wettersysteme benötigen eigene Adapter.
-- Die Version 0.3.0 ist weiterhin eine Entwicklungsversion und noch kein finaler v1.0-Release.
+- Die Version 0.6.0 ist weiterhin eine Entwicklungsversion und noch kein finaler v1.0-Release.
 
 Wetterdaten: Open-Meteo. Lizenzbedingungen siehe `LICENSE`.
