@@ -4,7 +4,7 @@ Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Version 0.6.0
+## Version 0.7.0-alpha
 
 Diese Entwicklungsversion enthält:
 
@@ -230,6 +230,154 @@ exports['airops_weather']:setExternalWeatherControl(false)
 
 
 
+
+## Integration SDK – v0.7.0-alpha
+
+Die Alpha-Version führt eine versionierte SDK-Schicht ein. Bestehende Exports
+bleiben vollständig erhalten.
+
+### SDK laden
+
+```lua
+local AirOps, errorMessage =
+    exports['airops_weather']:GetSDK(1)
+
+if not AirOps then
+    print(errorMessage)
+    return
+end
+```
+
+Ohne Versionsnummer wird die konfigurierte Standardversion verwendet:
+
+```lua
+local AirOps = exports['airops_weather']:GetSDK()
+```
+
+### SDK verwenden
+
+Die Methoden unterstützen sowohl Punkt- als auch Doppelpunkt-Syntax:
+
+```lua
+local weather = AirOps:GetWeather()
+local state = AirOps:GetState()
+local forecast = AirOps:GetForecast({ hours = 6 })
+local warnings = AirOps:GetWarnings()
+local health = AirOps:GetHealth()
+local providers = AirOps:GetProviders()
+local metadata = AirOps:GetMetadata()
+```
+
+Alternativ:
+
+```lua
+local weather = AirOps.GetWeather()
+```
+
+### API-Versionierung
+
+```lua
+local apiVersion =
+    exports['airops_weather']:GetAPIVersion()
+
+local sdkVersions =
+    exports['airops_weather']:GetSDKVersions()
+```
+
+Aktuell verfügbar:
+
+```text
+SDK v1
+API v1
+```
+
+Neue SDK-Versionen können später parallel ergänzt werden, ohne Integrationen
+auf Basis von SDK v1 zu beschädigen.
+
+### Zonen-Grundlage
+
+Die API akzeptiert bereits optional eine Zone:
+
+```lua
+local weather = AirOps:GetWeather({
+    zone = 'default'
+})
+```
+
+In dieser Alpha-Version existiert ausschließlich:
+
+```text
+default
+```
+
+Unbekannte Zonen liefern `nil` und eine eindeutige Fehlermeldung. Dadurch ist
+die Schnittstelle bereits für spätere Wetterzonen vorbereitet, ohne das
+bestehende globale Wetterverhalten zu verändern.
+
+## Provider Framework – v0.7.0-alpha
+
+Provider werden über eine gemeinsame Schnittstelle registriert. Der Scheduler
+kennt keine provider-spezifische Implementierung mehr.
+
+Mitgelieferte Provider:
+
+```text
+openmeteo
+mock
+```
+
+### Provider auswählen
+
+```lua
+Config.Provider.name = 'openmeteo'
+```
+
+Für lokale Entwicklung und reproduzierbare Tests:
+
+```lua
+Config.Provider.name = 'mock'
+```
+
+Die Werte des Mock-Providers werden über `Config.MockProvider` gesteuert.
+
+### Registrierte Provider abrufen
+
+```lua
+local providers =
+    exports['airops_weather']:GetRegisteredProviders()
+```
+
+Oder über das SDK:
+
+```lua
+local providers = AirOps:GetProviders()
+```
+
+### Provider-Vertrag
+
+Ein Provider registriert mindestens eine `fetch(callback)`-Funktion:
+
+```lua
+AirOpsWeather.Providers.Register('example', {
+    displayName = 'Example Provider',
+    version = 1,
+
+    fetch = function(callback)
+        callback(true, {
+            timezoneOffsetSeconds = 0,
+            current = {},
+            forecast = {}
+        })
+
+        return true
+    end
+})
+```
+
+Der Provider muss genau einmal über den Callback abschließen. Mehrfache
+Callbacks werden erkannt und ignoriert.
+
+
 ## Diagnostics & Admin Tools
 
 v0.6.0 erweitert AirOps um ein frameworkfreies Health-, Logging- und
@@ -414,7 +562,7 @@ Beispielstruktur:
 ```lua
 {
     apiVersion = 1,
-    resourceVersion = '0.6.0',
+    resourceVersion = '0.7.0-alpha',
     weather = 'RAIN',
     class = 'precipitation',
     intensity = 0.42,
@@ -738,6 +886,6 @@ Vor einem stabilen v1.0-Release werden zusätzlich Resmon-, Serverlast-, Langzei
 - Aktuell ist nur Open-Meteo als Provider enthalten.
 - Andere aktive Zeit- oder Wettersysteme können Konflikte verursachen.
 - Natural Disasters wird unterstützt; weitere Wettersysteme benötigen eigene Adapter.
-- Die Version 0.6.0 ist weiterhin eine Entwicklungsversion und noch kein finaler v1.0-Release.
+- Die Version 0.7.0-alpha ist eine frühe Entwicklungsversion und noch kein finaler v1.0-Release.
 
 Wetterdaten: Open-Meteo. Lizenzbedingungen siehe `LICENSE`.

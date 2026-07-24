@@ -17,6 +17,19 @@ Config.Logging = {
     repeatSummaryThreshold = 2
 }
 
+Config.SDK = {
+    -- Public SDK version returned when no version is specified.
+    defaultVersion = 1,
+
+    -- Allows future API versions to coexist without breaking integrations.
+    supportedVersions = {
+        [1] = true
+    },
+
+    -- Zone foundation for future multi-zone weather.
+    defaultZone = 'default'
+}
+
 Config.Diagnostics = {
     enabled = true,
     command = 'airops',
@@ -106,6 +119,20 @@ Config.Integrations = {
         pauseAirOpsTime = false,
         automaticOwnershipDetection = true
     }
+}
+
+Config.MockProvider = {
+    -- Used only when Config.Provider.name = 'mock'.
+    weatherCode = 0,
+    temperature = 20.0,
+    humidity = 55,
+    pressure = 1015,
+    precipitation = 0.0,
+    cloudCover = 10,
+    visibility = 10000,
+    windSpeed = 8,
+    windDirection = 180,
+    windGusts = 12
 }
 
 Config.AdaptivePolling = {

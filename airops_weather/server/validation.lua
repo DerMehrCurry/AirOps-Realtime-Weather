@@ -54,8 +54,18 @@ function AirOpsWeather.Validation.Run()
         add(errors, 'MISSING_LOCATION_NAME', 'Config.Location.name must not be empty.')
     end
 
-    if string.lower(tostring(Config.Provider and Config.Provider.name or '')) ~= 'openmeteo' then
-        add(errors, 'UNSUPPORTED_PROVIDER', 'Only the openmeteo provider is supported in v0.6.0.')
+    local providerName = string.lower(
+        tostring(Config.Provider and Config.Provider.name or '')
+    )
+
+    if providerName == '' then
+        add(errors, 'MISSING_PROVIDER', 'Config.Provider.name must not be empty.')
+    elseif not AirOpsWeather.Providers.Exists(providerName) then
+        add(
+            errors,
+            'UNSUPPORTED_PROVIDER',
+            ('Provider %s is not registered.'):format(providerName)
+        )
     end
 
     local forecastHours = tonumber(Config.Provider and Config.Provider.forecastHours)

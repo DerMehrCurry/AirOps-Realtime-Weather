@@ -35,6 +35,25 @@ local function clone(value, seen)
     return copy
 end
 
+local function normalizeZone(zone)
+    zone = string.lower(tostring(
+        zone
+        or (Config.SDK and Config.SDK.defaultZone)
+        or AirOpsWeather.DefaultZone
+        or 'default'
+    ))
+
+    if zone == '' then
+        return 'default'
+    end
+
+    return zone
+end
+
+local function supportsZone(zone)
+    return normalizeZone(zone) == 'default'
+end
+
 local function clamp(value, minimum, maximum)
     value = tonumber(value) or 0
     return math.max(minimum, math.min(maximum, value))
@@ -222,7 +241,11 @@ function AirOpsWeather.API.GetWarnings(profile)
     return warnings
 end
 
-function AirOpsWeather.API.GetWeatherProfile()
+function AirOpsWeather.API.GetWeatherProfile(zone)
+    zone = normalizeZone(zone)
+    if not supportsZone(zone) then
+        return nil, ('unknown weather zone: %s'):format(zone)
+    end
     local cache = AirOpsWeather.GetCache()
     local state = AirOpsWeather.PublicState()
     local raw = cache.raw or {}
@@ -232,7 +255,8 @@ function AirOpsWeather.API.GetWeatherProfile()
     local condition = roadCondition(effectiveWeather, raw.precipitation)
 
     local profile = {
-        apiVersion = 1,
+        apiVersion = AirOpsWeather.APIVersion,
+        zone = zone,
         resourceVersion = AirOpsWeather.Version,
         location = {
             name = Config.Location.name,
@@ -278,7 +302,11 @@ function AirOpsWeather.API.GetWeatherProfile()
     return profile
 end
 
-function AirOpsWeather.API.GetTime()
+function AirOpsWeather.API.GetTime(zone)
+    zone = normalizeZone(zone)
+    if not supportsZone(zone) then
+        return nil, ('unknown weather zone: %s'):format(zone)
+    end
     local state = AirOpsWeather.PublicState()
     local override = state.timeOverride or { active = false }
     local unixTime = os.time()
@@ -294,6 +322,7 @@ function AirOpsWeather.API.GetTime()
     end
 
     return {
+        zone = zone,
         hour = math.floor(secondsOfDay / 3600),
         minute = math.floor((secondsOfDay % 3600) / 60),
         second = math.floor(secondsOfDay % 60),
@@ -306,7 +335,11 @@ function AirOpsWeather.API.GetTime()
     }
 end
 
-function AirOpsWeather.API.GetForecast(hours)
+function AirOpsWeather.API.GetForecast(hours, zone)
+    zone = normalizeZone(zone)
+    if not supportsZone(zone) then
+        return nil, ('unknown weather zone: %s'):format(zone)
+    end
     local cache = AirOpsWeather.GetCache()
     local requestedHours = math.max(
         1,
@@ -324,12 +357,17 @@ function AirOpsWeather.API.GetForecast(hours)
     return result
 end
 
-function AirOpsWeather.API.GetState()
+function AirOpsWeather.API.GetState(zone)
+    zone = normalizeZone(zone)
+    if not supportsZone(zone) then
+        return nil, ('unknown weather zone: %s'):format(zone)
+    end
     local state = AirOpsWeather.PublicState()
-    state.apiVersion = 1
-    state.profile = AirOpsWeather.API.GetWeatherProfile()
-    state.time = AirOpsWeather.API.GetTime()
-    state.forecast = AirOpsWeather.API.GetForecast()
+    state.apiVersion = AirOpsWeather.APIVersion
+    state.zone = zone
+    state.profile = AirOpsWeather.API.GetWeatherProfile(zone)
+    state.time = AirOpsWeather.API.GetTime(zone)
+    state.forecast = AirOpsWeather.API.GetForecast(nil, zone)
     state.flight = clone(state.profile.flight)
     state.warnings = clone(state.profile.warnings)
     return state
@@ -376,20 +414,20 @@ function AirOpsWeather.API.EmitChanges(force)
     end
 end
 
-exports('GetWeather', function()
-    return AirOpsWeather.API.GetWeatherProfile()
+exports('GetWeather', function(zone)
+    return AirOpsWeather.API.GetWeatherProfile(zone)
 end)
 
-exports('GetTime', function()
-    return AirOpsWeather.API.GetTime()
+exports('GetTime', function(zone)
+    return AirOpsWeather.API.GetTime(zone)
 end)
 
-exports('GetState', function()
-    return AirOpsWeather.API.GetState()
+exports('GetState', function(zone)
+    return AirOpsWeather.API.GetState(zone)
 end)
 
-exports('GetForecast', function(hours)
-    return AirOpsWeather.API.GetForecast(hours)
+exports('GetForecast', function(hours, zone)
+    return AirOpsWeather.API.GetForecast(hours, zone)
 end)
 
 exports('GetFlightConditions', function()
@@ -401,20 +439,20 @@ exports('GetWarnings', function()
 end)
 
 -- Lowercase aliases preserve the style of earlier Community releases.
-exports('getWeather', function()
-    return AirOpsWeather.API.GetWeatherProfile()
+exports('getWeather', function(zone)
+    return AirOpsWeather.API.GetWeatherProfile(zone)
 end)
 
-exports('getTime', function()
-    return AirOpsWeather.API.GetTime()
+exports('getTime', function(zone)
+    return AirOpsWeather.API.GetTime(zone)
 end)
 
-exports('getState', function()
-    return AirOpsWeather.API.GetState()
+exports('getState', function(zone)
+    return AirOpsWeather.API.GetState(zone)
 end)
 
-exports('getForecast', function(hours)
-    return AirOpsWeather.API.GetForecast(hours)
+exports('getForecast', function(hours, zone)
+    return AirOpsWeather.API.GetForecast(hours, zone)
 end)
 
 exports('getFlightConditions', function()

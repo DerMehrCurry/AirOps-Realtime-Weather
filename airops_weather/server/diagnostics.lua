@@ -139,7 +139,9 @@ function AirOpsWeather.Diagnostics.GetHealth()
         status = status,
         checkedAt = os.time(),
         provider = {
-            name = Config.Provider.name,
+            name = AirOpsWeather.Providers.GetActiveName()
+                or Config.Provider.name,
+            registered = AirOpsWeather.Providers.List(),
             available = not scheduler.providerUnavailable,
             lastError = scheduler.lastProviderError,
             lastSuccessAt = cache.fetchedAt,
@@ -211,7 +213,7 @@ end
 function AirOpsWeather.Diagnostics.GetDiagnostics()
     return {
         version = AirOpsWeather.Version,
-        apiVersion = 1,
+        apiVersion = AirOpsWeather.APIVersion,
         generatedAt = os.time(),
         health = AirOpsWeather.Diagnostics.GetHealth(),
         state = AirOpsWeather.API.GetState(),

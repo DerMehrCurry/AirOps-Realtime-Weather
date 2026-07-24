@@ -87,13 +87,13 @@ function AirOpsWeather.UpdateWeather()
         return false
     end
 
-    local provider = string.lower(Config.Provider.name or 'openmeteo')
-        == 'openmeteo'
-        and AirOpsWeather.Providers.OpenMeteo
-        or nil
+    local provider = AirOpsWeather.Providers.GetActive()
 
     if not provider then
-        AirOpsWeather.Warn('Unknown provider: %s', Config.Provider.name)
+        local reason = ('Unknown provider: %s')
+            :format(tostring(Config.Provider.name))
+        markProviderUnavailable(reason)
+        AirOpsWeather.Warn(reason)
         return false
     end
 
@@ -135,7 +135,7 @@ function AirOpsWeather.UpdateWeather()
         AirOpsWeather.ScheduleNextUpdate(wait)
     end)
 
-    provider(function(success, payload, errorMessage)
+    AirOpsWeather.Providers.Fetch(function(success, payload, errorMessage)
         if callbackCompleted or requestId ~= activeRequestId then
             AirOpsWeather.Debug('Late provider callback ignored.')
             return

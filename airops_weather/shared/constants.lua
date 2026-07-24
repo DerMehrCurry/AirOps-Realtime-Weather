@@ -1,5 +1,7 @@
 AirOpsWeather = AirOpsWeather or {}
-AirOpsWeather.Version = '0.6.0'
+AirOpsWeather.Version = '0.7.0-alpha'
+AirOpsWeather.APIVersion = 1
+AirOpsWeather.DefaultZone = 'default'
 AirOpsWeather.Events = {
     requestSync = 'airops_weather:server:requestSync',
     syncState = 'airops_weather:client:syncState',

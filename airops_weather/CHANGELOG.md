@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.7.0-alpha] - 2026-07-24
+
+### Added
+
+- versioned Integration SDK with `GetSDK(version)`
+- SDK v1 metadata and discovery exports
+- provider registry and common provider interface
+- `GetRegisteredProviders` export
+- deterministic mock provider for development and testing
+- optional `default` zone parameter across the public API
+- zone metadata in weather, time and state responses
+- `Config.SDK` and `Config.MockProvider`
+
+### Changed
+
+- scheduler now fetches data through the provider registry
+- Open-Meteo now implements the common provider contract
+- provider validation checks registered providers instead of hard-coding Open-Meteo
+- diagnostics expose active and registered providers
+- public exports accept optional zone arguments without breaking old calls
+- version bumped to `0.7.0-alpha`
+
+### Compatibility
+
+- all v0.5.0 and v0.6.0 public exports remain available
+- lowercase export aliases remain available
+- SDK v1 wraps the existing API instead of replacing it
+- global weather behavior remains unchanged; only the `default` zone exists
+
 ## [0.6.0] - 2026-07-24
 
 ### Added
