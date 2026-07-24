@@ -113,6 +113,50 @@ function SDK.GetProviders()
     return AirOpsWeather.Providers.List()
 end
 
+function SDK.GetJSON(self, options)
+    if self ~= SDK then
+        options = self
+    end
+
+    AirOpsWeather.IntegrationMetrics.Increment('sdkCalls')
+    return AirOpsWeather.JSON.Get(zoneFrom(options), false)
+end
+
+function SDK.GetJSONDocument(self, options)
+    if self ~= SDK then
+        options = self
+    end
+
+    AirOpsWeather.IntegrationMetrics.Increment('sdkCalls')
+    return AirOpsWeather.JSON.GetDocument(zoneFrom(options))
+end
+
+function SDK.Subscribe(self, eventName, callback)
+    if self ~= SDK then
+        callback = eventName
+        eventName = self
+    end
+
+    AirOpsWeather.IntegrationMetrics.Increment('sdkCalls')
+    return AirOpsWeather.Integrations.Subscribe(
+        eventName,
+        callback,
+        GetInvokingResource()
+    )
+end
+
+function SDK.Unsubscribe(self, listenerId)
+    if self ~= SDK then
+        listenerId = self
+    end
+
+    return AirOpsWeather.Integrations.Unsubscribe(listenerId)
+end
+
+function SDK.GetIntegrationMetrics()
+    return AirOpsWeather.IntegrationMetrics.Get()
+end
+
 function SDK.GetMetadata()
     return {
         sdkVersion = SDK.version,

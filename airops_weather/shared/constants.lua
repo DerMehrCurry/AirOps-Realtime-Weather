@@ -1,5 +1,5 @@
 AirOpsWeather = AirOpsWeather or {}
-AirOpsWeather.Version = '0.7.0-alpha'
+AirOpsWeather.Version = '0.7.0-beta'
 AirOpsWeather.APIVersion = 1
 AirOpsWeather.DefaultZone = 'default'
 AirOpsWeather.Events = {
@@ -14,7 +14,12 @@ AirOpsWeather.Events = {
     warningsChanged = 'airops_weather:warningsChanged',
     providerUnavailable = 'airops_weather:providerUnavailable',
     providerRecovered = 'airops_weather:providerRecovered',
-    healthChanged = 'airops_weather:healthChanged'
+    healthChanged = 'airops_weather:healthChanged',
+    integrationEvent = 'airops_weather:integrationEvent',
+    jsonUpdated = 'airops_weather:jsonUpdated',
+    warningAdded = 'airops_weather:warningAdded',
+    warningRemoved = 'airops_weather:warningRemoved',
+    providerFailed = 'airops_weather:providerFailed'
 }
 
 local function fallbackLog(level, message, ...)

@@ -218,6 +218,7 @@ function AirOpsWeather.Diagnostics.GetDiagnostics()
         health = AirOpsWeather.Diagnostics.GetHealth(),
         state = AirOpsWeather.API.GetState(),
         metrics = AirOpsWeather.Metrics.Get(),
+        integrationMetrics = AirOpsWeather.IntegrationMetrics.Get(),
         forecast = AirOpsWeather.Diagnostics.GetForecast(),
         integrations = AirOpsWeather.Diagnostics.GetIntegrations(),
         validation = clone(AirOpsWeather.Validation.GetResult()),

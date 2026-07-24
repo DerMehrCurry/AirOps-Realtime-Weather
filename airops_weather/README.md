@@ -1,10 +1,19 @@
+<p align="center">
+  <img src="assets/AirOps-Development-Banner.png" alt="AirOps Development Banner">
+</p>
+
+<p align="center">
+  <strong>CODE. CREATE. DEPLOY.</strong><br>
+  Built for Roleplay. Made for Community.
+</p>
+
 # AirOps Realtime Weather – Community Edition
 
 Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Version 0.7.0-alpha
+## Version 0.7.0-beta
 
 Diese Entwicklungsversion enthält:
 
@@ -231,7 +240,65 @@ exports['airops_weather']:setExternalWeatherControl(false)
 
 
 
-## Integration SDK – v0.7.0-alpha
+
+## Ecosystem & Integration – v0.7.0-beta
+
+### Standardisierte JSON-Ausgabe
+
+```lua
+local payload = exports['airops_weather']:GetJSON()
+local document = exports['airops_weather']:GetJSONDocument()
+local schema = exports['airops_weather']:GetJSONSchema()
+```
+
+### Push-basierte Integrationen
+
+```lua
+local AirOps = exports['airops_weather']:GetSDK(1)
+
+local listenerId = AirOps:Subscribe('warningAdded', function(warning)
+    print(warning.code, warning.message)
+end)
+```
+
+Dadurch müssen Integrationen den Wetterstatus nicht fortlaufend pollen.
+
+### Discord-Webhooks
+
+Webhooks sind standardmäßig deaktiviert:
+
+```lua
+Config.Webhooks.enabled = true
+Config.Webhooks.url = 'YOUR_DISCORD_WEBHOOK_URL'
+```
+
+Unterstützt werden Meldungen für Start, Stopp, Provider-Ausfall,
+Provider-Wiederherstellung, schwere Wetterwarnungen und kritische
+Flugbedingungen. Die interne Queue bietet Rate-Limiting und Retry-Logik.
+
+### Integration Metrics
+
+```lua
+local metrics =
+    exports['airops_weather']:GetIntegrationMetrics()
+```
+
+Erfasst werden unter anderem Events, Listener, JSON-Exporte, Webhook-Erfolge,
+Fehler, Retries und verworfene Nachrichten.
+
+### Dokumentation und Beispiele
+
+```text
+docs/
+examples/
+assets/
+```
+
+Die mitgelieferten Beispiele zeigen eine einfache Event-Integration und eine
+HEMS-Flugstatusabfrage.
+
+
+## Integration SDK – v0.7.0-beta
 
 Die Alpha-Version führt eine versionierte SDK-Schicht ein. Bestehende Exports
 bleiben vollständig erhalten.
@@ -314,7 +381,7 @@ Unbekannte Zonen liefern `nil` und eine eindeutige Fehlermeldung. Dadurch ist
 die Schnittstelle bereits für spätere Wetterzonen vorbereitet, ohne das
 bestehende globale Wetterverhalten zu verändern.
 
-## Provider Framework – v0.7.0-alpha
+## Provider Framework – v0.7.0-beta
 
 Provider werden über eine gemeinsame Schnittstelle registriert. Der Scheduler
 kennt keine provider-spezifische Implementierung mehr.
@@ -562,7 +629,7 @@ Beispielstruktur:
 ```lua
 {
     apiVersion = 1,
-    resourceVersion = '0.7.0-alpha',
+    resourceVersion = '0.7.0-beta',
     weather = 'RAIN',
     class = 'precipitation',
     intensity = 0.42,
@@ -886,6 +953,6 @@ Vor einem stabilen v1.0-Release werden zusätzlich Resmon-, Serverlast-, Langzei
 - Aktuell ist nur Open-Meteo als Provider enthalten.
 - Andere aktive Zeit- oder Wettersysteme können Konflikte verursachen.
 - Natural Disasters wird unterstützt; weitere Wettersysteme benötigen eigene Adapter.
-- Die Version 0.7.0-alpha ist eine frühe Entwicklungsversion und noch kein finaler v1.0-Release.
+- Die Version 0.7.0-beta ist eine frühe Entwicklungsversion und noch kein finaler v1.0-Release.
 
 Wetterdaten: Open-Meteo. Lizenzbedingungen siehe `LICENSE`.

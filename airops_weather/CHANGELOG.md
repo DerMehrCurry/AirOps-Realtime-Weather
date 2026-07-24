@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.7.0-beta] - 2026-07-24
+
+### Added
+
+- integration event bus with listener registration and event history
+- generic `airops_weather:integrationEvent`
+- standardized JSON document, payload and schema exports
+- SDK JSON methods and push listener methods
+- Discord webhook notifications
+- webhook queue, rate limiting and exponential retry logic
+- integration metrics and diagnostics data
+- warning added and warning removed events
+- provider failed compatibility event
+- developer documentation for SDK, JSON, events, providers and webhooks
+- simple integration and HEMS example resources
+- AirOps Development logo and banner assets
+
+### Changed
+
+- version bumped to `0.7.0-beta`
+- diagnostics now include integration metrics
+- SDK v1 exposes integration and JSON helpers
+- README uses the AirOps Development branding
+- existing AirOps events are bridged into the integration event bus
+
+### Compatibility
+
+- all public exports from v0.7.0-alpha remain available
+- existing server events remain available
+- webhooks are disabled by default
+- integrations can continue polling or migrate to push listeners incrementally
+
 ## [0.7.0-alpha] - 2026-07-24
 
 ### Added

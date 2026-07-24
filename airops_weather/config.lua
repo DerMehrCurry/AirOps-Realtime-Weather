@@ -30,6 +30,52 @@ Config.SDK = {
     defaultZone = 'default'
 }
 
+
+Config.IntegrationBus = {
+    enabled = true,
+
+    -- Limits retained history used by diagnostics.
+    historySize = 50,
+
+    -- Emits the generic airops_weather:integrationEvent event in addition
+    -- to the specific AirOps events.
+    emitGenericEvent = true
+}
+
+Config.JSON = {
+    enabled = true,
+    includeDiagnostics = true,
+    includeHealth = true,
+    includeForecast = true,
+    prettyIndent = 2
+}
+
+Config.Webhooks = {
+    enabled = false,
+    url = '',
+
+    username = 'AirOps Weather',
+    avatarUrl = '',
+
+    startup = true,
+    shutdown = true,
+    providerFailure = true,
+    providerRecovered = true,
+    severeWeather = true,
+    flightWarnings = true,
+    diagnostics = false,
+
+    -- Discord requests are queued and retried with exponential backoff.
+    maximumQueueSize = 50,
+    retryInitialSeconds = 15,
+    retryMultiplier = 2,
+    retryMaximumSeconds = 300,
+    maximumAttempts = 5,
+
+    -- Prevents repeated messages of the same category.
+    rateLimitSeconds = 300
+}
+
 Config.Diagnostics = {
     enabled = true,
     command = 'airops',
