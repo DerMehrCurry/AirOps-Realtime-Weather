@@ -29,3 +29,17 @@ Available integration event names include:
 - `providerRecovered`
 - `healthChanged`
 - `jsonUpdated`
+
+
+## Zone discovery
+
+```lua
+local zones = AirOps:GetZones()
+local defaultZone = AirOps:GetZone('default')
+local state = AirOps:GetZoneState('default')
+```
+
+## Release-candidate compatibility promise
+
+SDK v1 is frozen for the remainder of the v0.7 release cycle. Breaking SDK v1
+changes are deferred to a future major API version.

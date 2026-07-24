@@ -36,22 +36,12 @@ local function clone(value, seen)
 end
 
 local function normalizeZone(zone)
-    zone = string.lower(tostring(
-        zone
-        or (Config.SDK and Config.SDK.defaultZone)
-        or AirOpsWeather.DefaultZone
-        or 'default'
-    ))
-
-    if zone == '' then
-        return 'default'
-    end
-
-    return zone
+    local resolved, errorMessage = AirOpsWeather.Zones.Resolve(zone)
+    return resolved, errorMessage
 end
 
 local function supportsZone(zone)
-    return normalizeZone(zone) == 'default'
+    return AirOpsWeather.Zones.Exists(zone)
 end
 
 local function clamp(value, minimum, maximum)
@@ -242,10 +232,11 @@ function AirOpsWeather.API.GetWarnings(profile)
 end
 
 function AirOpsWeather.API.GetWeatherProfile(zone)
-    zone = normalizeZone(zone)
-    if not supportsZone(zone) then
-        return nil, ('unknown weather zone: %s'):format(zone)
+    local resolvedZone, zoneError = normalizeZone(zone)
+    if not resolvedZone then
+        return nil, zoneError
     end
+    zone = resolvedZone
     local cache = AirOpsWeather.GetCache()
     local state = AirOpsWeather.PublicState()
     local raw = cache.raw or {}
@@ -303,10 +294,11 @@ function AirOpsWeather.API.GetWeatherProfile(zone)
 end
 
 function AirOpsWeather.API.GetTime(zone)
-    zone = normalizeZone(zone)
-    if not supportsZone(zone) then
-        return nil, ('unknown weather zone: %s'):format(zone)
+    local resolvedZone, zoneError = normalizeZone(zone)
+    if not resolvedZone then
+        return nil, zoneError
     end
+    zone = resolvedZone
     local state = AirOpsWeather.PublicState()
     local override = state.timeOverride or { active = false }
     local unixTime = os.time()
@@ -336,10 +328,11 @@ function AirOpsWeather.API.GetTime(zone)
 end
 
 function AirOpsWeather.API.GetForecast(hours, zone)
-    zone = normalizeZone(zone)
-    if not supportsZone(zone) then
-        return nil, ('unknown weather zone: %s'):format(zone)
+    local resolvedZone, zoneError = normalizeZone(zone)
+    if not resolvedZone then
+        return nil, zoneError
     end
+    zone = resolvedZone
     local cache = AirOpsWeather.GetCache()
     local requestedHours = math.max(
         1,
@@ -358,10 +351,11 @@ function AirOpsWeather.API.GetForecast(hours, zone)
 end
 
 function AirOpsWeather.API.GetState(zone)
-    zone = normalizeZone(zone)
-    if not supportsZone(zone) then
-        return nil, ('unknown weather zone: %s'):format(zone)
+    local resolvedZone, zoneError = normalizeZone(zone)
+    if not resolvedZone then
+        return nil, zoneError
     end
+    zone = resolvedZone
     local state = AirOpsWeather.PublicState()
     state.apiVersion = AirOpsWeather.APIVersion
     state.zone = zone

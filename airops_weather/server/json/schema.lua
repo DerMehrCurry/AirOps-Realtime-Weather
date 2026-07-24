@@ -11,6 +11,7 @@ function AirOpsWeather.JSON.GetSchema()
             'sdkVersion',
             'provider',
             'zone',
+            'zones',
             'timestamp',
             'weather',
             'forecast',

@@ -30,6 +30,32 @@ Config.SDK = {
     defaultZone = 'default'
 }
 
+Config.Zones = {
+    enabled = true,
+    default = 'default',
+
+    -- v0.7.0-rc still uses one shared weather state. Additional zones can
+    -- already be registered for integrations and future configuration.
+    sharedState = true,
+
+    definitions = {
+        default = {
+            label = 'Global',
+            enabled = true,
+            metadata = {
+                type = 'global'
+            }
+        }
+    }
+}
+
+Config.SelfTest = {
+    enabled = true,
+    runOnStartup = true,
+    startupDelayMs = 2500,
+    command = 'airops_weather_selftest'
+}
+
 
 Config.IntegrationBus = {
     enabled = true,

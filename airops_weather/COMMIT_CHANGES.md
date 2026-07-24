@@ -1,33 +1,33 @@
-# Commit changes – v0.7.0-beta
+# Commit changes – v0.7.0-rc
 
 ## Recommended commit
 
 ```text
-feat(integrations): add event bus, JSON exports and Discord webhooks
+feat(rc): stabilize zones, documentation and release self-test
 ```
 
 ## Commit body
 
 ```text
-- add integration event bus and push listener registry
-- bridge weather, forecast, warning, provider and health events
-- add standardized JSON document and schema exports
-- add Discord webhook queue, rate limiting and retry handling
-- add integration metrics and diagnostics
-- extend SDK v1 with JSON and subscription helpers
-- add developer documentation and integration examples
-- add AirOps Development branding assets
-- bump version to v0.7.0-beta
+- add formal weather-zone registry and shared-state compatibility layer
+- add zone discovery, registration and state exports
+- extend SDK v1 with zone helpers
+- add release-candidate self-test and console command
+- validate zone and webhook configuration
+- add full public API reference and migration guides
+- add dispatch, phone, scoreboard and website examples
+- freeze SDK v1 for the remainder of the v0.7 release cycle
+- bump version to v0.7.0-rc
 ```
 
 ## Git tag
 
 ```text
-v0.7.0-beta
+v0.7.0-rc
 ```
 
 ## GitHub release title
 
 ```text
-AirOps Realtime Weather Community v0.7.0-beta
+AirOps Realtime Weather Community v0.7.0-rc
 ```

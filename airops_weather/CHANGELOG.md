@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.7.0-rc] - 2026-07-24
+
+### Added
+
+- formal weather-zone registry and discovery exports
+- shared-state zone compatibility layer
+- zone registration and zone change integration events
+- SDK v1 zone discovery helpers
+- release-candidate self-test and console command
+- configuration validation for zones and webhooks
+- complete public API reference
+- zone and self-test documentation
+- migration guides for alpha, beta and release candidate
+- dispatch, phone, scoreboard and website bridge examples
+
+### Changed
+
+- version bumped to `0.7.0-rc`
+- zone resolution now uses the central zone registry
+- JSON documents include registered zone metadata
+- SDK v1 surface is frozen for the remainder of v0.7
+- README documents the release-candidate compatibility policy
+
+### Compatibility
+
+- no existing exports were removed
+- no SDK v1 methods were removed
+- calls without an explicit zone still use `default`
+- all zones continue to share the global weather state by default
+- independent regional weather is intentionally deferred
+
 ## [0.7.0-beta] - 2026-07-24
 
 ### Added

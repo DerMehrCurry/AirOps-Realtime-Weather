@@ -13,7 +13,7 @@ Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Version 0.7.0-beta
+## Version 0.7.0-rc
 
 Diese Entwicklungsversion enthält:
 
@@ -241,7 +241,46 @@ exports['airops_weather']:setExternalWeatherControl(false)
 
 
 
-## Ecosystem & Integration – v0.7.0-beta
+
+## Release Candidate – v0.7.0-rc
+
+Diese Version friert die öffentliche API und das SDK v1 für den restlichen
+v0.7-Zyklus ein.
+
+### Stabilisiertes Zonensystem
+
+```lua
+local zones =
+    exports['airops_weather']:GetWeatherZones()
+
+local airportZone =
+    exports['airops_weather']:GetWeatherZone('airport')
+```
+
+Mehrere Zonen können bereits registriert und von Integrationen abgefragt
+werden. Standardmäßig teilen alle registrierten Zonen weiterhin denselben
+globalen Wetterzustand. Unabhängiges regionales Wetter wird noch nicht
+aktiviert.
+
+### Selbstprüfung
+
+```text
+airops_weather_selftest
+```
+
+Die Prüfung kontrolliert Konfiguration, Provider, Standardzone, SDK,
+JSON-Schema, Event Bus und Diagnostics.
+
+### Migrationshinweise
+
+```text
+docs/migration/
+```
+
+Es wurden keine bisherigen Exports oder SDK-v1-Methoden entfernt.
+
+
+## Ecosystem & Integration – v0.7.0-rc
 
 ### Standardisierte JSON-Ausgabe
 
@@ -298,7 +337,7 @@ Die mitgelieferten Beispiele zeigen eine einfache Event-Integration und eine
 HEMS-Flugstatusabfrage.
 
 
-## Integration SDK – v0.7.0-beta
+## Integration SDK – v0.7.0-rc
 
 Die Alpha-Version führt eine versionierte SDK-Schicht ein. Bestehende Exports
 bleiben vollständig erhalten.
@@ -381,7 +420,7 @@ Unbekannte Zonen liefern `nil` und eine eindeutige Fehlermeldung. Dadurch ist
 die Schnittstelle bereits für spätere Wetterzonen vorbereitet, ohne das
 bestehende globale Wetterverhalten zu verändern.
 
-## Provider Framework – v0.7.0-beta
+## Provider Framework – v0.7.0-rc
 
 Provider werden über eine gemeinsame Schnittstelle registriert. Der Scheduler
 kennt keine provider-spezifische Implementierung mehr.
@@ -629,7 +668,7 @@ Beispielstruktur:
 ```lua
 {
     apiVersion = 1,
-    resourceVersion = '0.7.0-beta',
+    resourceVersion = '0.7.0-rc',
     weather = 'RAIN',
     class = 'precipitation',
     intensity = 0.42,
@@ -953,6 +992,6 @@ Vor einem stabilen v1.0-Release werden zusätzlich Resmon-, Serverlast-, Langzei
 - Aktuell ist nur Open-Meteo als Provider enthalten.
 - Andere aktive Zeit- oder Wettersysteme können Konflikte verursachen.
 - Natural Disasters wird unterstützt; weitere Wettersysteme benötigen eigene Adapter.
-- Die Version 0.7.0-beta ist eine frühe Entwicklungsversion und noch kein finaler v1.0-Release.
+- Die Version 0.7.0-rc ist eine frühe Entwicklungsversion und noch kein finaler v1.0-Release.
 
 Wetterdaten: Open-Meteo. Lizenzbedingungen siehe `LICENSE`.

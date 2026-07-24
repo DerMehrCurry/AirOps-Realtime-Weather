@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'AirOps Development'
 description 'Core-independent real-time weather and clock synchronization for FiveM.'
-version '0.7.0-beta'
+version '0.7.0-rc'
 
 lua54 'yes'
 
@@ -28,6 +28,8 @@ server_scripts {
     'server/providers/base.lua',
     'server/providers/openmeteo.lua',
     'server/providers/mock.lua',
+    'server/zones/registry.lua',
+    'server/zones/state.lua',
     'server/scheduler.lua',
     'server/api.lua',
     'server/sdk/v1.lua',
@@ -37,6 +39,8 @@ server_scripts {
     'server/webhooks/embeds.lua',
     'server/webhooks/queue.lua',
     'server/webhooks/discord.lua',
+    'server/selftest/checks.lua',
+    'server/selftest/command.lua',
     'server/diagnostics.lua',
     'server/main.lua'
 }

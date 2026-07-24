@@ -157,15 +157,33 @@ function SDK.GetIntegrationMetrics()
     return AirOpsWeather.IntegrationMetrics.Get()
 end
 
+function SDK.GetZones()
+    return AirOpsWeather.Zones.List()
+end
+
+function SDK.GetZone(self, name)
+    if self ~= SDK then
+        name = self
+    end
+
+    return AirOpsWeather.Zones.Get(name)
+end
+
+function SDK.GetZoneState(self, name)
+    if self ~= SDK then
+        name = self
+    end
+
+    return AirOpsWeather.ZoneState.Get(name)
+end
+
 function SDK.GetMetadata()
     return {
         sdkVersion = SDK.version,
         apiVersion = AirOpsWeather.APIVersion,
         resourceVersion = AirOpsWeather.Version,
         defaultZone = SDK.defaultZone,
-        supportedZones = {
-            SDK.defaultZone
-        },
+        supportedZones = AirOpsWeather.Zones.List(),
         provider = AirOpsWeather.Providers.GetActiveName()
     }
 end

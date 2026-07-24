@@ -62,3 +62,20 @@ AddEventHandler(AirOpsWeather.Events.warningsChanged, function(warnings)
     previousWarnings = current
     publish('warningsUpdated', warnings, AirOpsWeather.Events.warningsChanged)
 end)
+
+
+AddEventHandler(AirOpsWeather.Events.zoneRegistered, function(zone)
+    publish('zoneRegistered', zone, AirOpsWeather.Events.zoneRegistered)
+end)
+
+AddEventHandler(
+    AirOpsWeather.Events.zoneChanged,
+    function(zone, previous, current, reason)
+        publish('zoneChanged', {
+            zone = zone,
+            previous = previous,
+            current = current,
+            reason = reason
+        }, AirOpsWeather.Events.zoneChanged)
+    end
+)
