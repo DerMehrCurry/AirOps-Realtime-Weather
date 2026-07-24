@@ -205,27 +205,27 @@ function AirOpsWeather.API.GetWarnings(profile)
     end
 
     if profile.weather == 'THUNDER' then
-        add('THUNDERSTORM', 'severe', 'Thunderstorm conditions')
+        add('THUNDERSTORM', 'RED', 'Thunderstorm conditions')
     elseif profile.weather == 'BLIZZARD' then
-        add('BLIZZARD', 'severe', 'Blizzard conditions')
+        add('BLIZZARD', 'RED', 'Blizzard conditions')
     end
 
     if wind >= (tonumber(thresholds.severeWindKmh) or 55) then
-        add('SEVERE_WIND', 'severe', 'Severe wind')
+        add('SEVERE_WIND', 'RED', 'Severe wind')
     elseif wind >= (tonumber(thresholds.strongWindKmh) or 35) then
-        add('STRONG_WIND', 'warning', 'Strong wind')
+        add('STRONG_WIND', 'ORANGE', 'Strong wind')
     end
 
     if visibility <= (tonumber(thresholds.criticalVisibilityMeters) or 1200) then
-        add('CRITICAL_VISIBILITY', 'severe', 'Critical visibility')
+        add('CRITICAL_VISIBILITY', 'RED', 'Critical visibility')
     elseif visibility <= (tonumber(thresholds.lowVisibilityMeters) or 3000) then
-        add('LOW_VISIBILITY', 'warning', 'Low visibility')
+        add('LOW_VISIBILITY', 'ORANGE', 'Low visibility')
     end
 
     if precipitation >= (tonumber(thresholds.extremePrecipitationMm) or 8.0) then
-        add('EXTREME_PRECIPITATION', 'severe', 'Extreme precipitation')
+        add('EXTREME_PRECIPITATION', 'RED', 'Extreme precipitation')
     elseif precipitation >= (tonumber(thresholds.heavyPrecipitationMm) or 4.0) then
-        add('HEAVY_PRECIPITATION', 'warning', 'Heavy precipitation')
+        add('HEAVY_PRECIPITATION', 'ORANGE', 'Heavy precipitation')
     end
 
     return warnings
@@ -367,8 +367,41 @@ function AirOpsWeather.API.GetState(zone)
     return state
 end
 
+local VOLATILE_SIGNATURE_KEYS = {
+    checkedAt = true,
+    evaluatedAt = true,
+    generatedAt = true,
+    secondsFromNow = true,
+    secondsUntilNextPoll = true,
+    timestamp = true,
+    unixTime = true
+}
+
+local function stableValue(value, seen)
+    if type(value) ~= 'table' then
+        return value
+    end
+
+    seen = seen or {}
+    if seen[value] then
+        return '<cycle>'
+    end
+
+    seen[value] = true
+    local copy = {}
+
+    for key, item in pairs(value) do
+        if not VOLATILE_SIGNATURE_KEYS[tostring(key)] then
+            copy[key] = stableValue(item, seen)
+        end
+    end
+
+    seen[value] = nil
+    return copy
+end
+
 local function signature(value)
-    local ok, encoded = pcall(json.encode, value)
+    local ok, encoded = pcall(json.encode, stableValue(value))
     return ok and encoded or tostring(value)
 end
 

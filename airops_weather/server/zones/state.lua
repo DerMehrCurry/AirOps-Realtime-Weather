@@ -40,13 +40,6 @@ function AirOpsWeather.ZoneState.Set(zone, state, reason)
         reason
     )
 
-    AirOpsWeather.Integrations.Publish('zoneChanged', {
-        zone = resolved,
-        previous = previous,
-        current = state,
-        reason = reason
-    })
-
     return true
 end
 

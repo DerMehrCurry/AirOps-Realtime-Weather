@@ -4,14 +4,18 @@ AirOpsWeather.Webhooks = AirOpsWeather.Webhooks or {}
 function AirOpsWeather.Webhooks.SendRaw(payload, callback)
     if not Config.Webhooks.enabled
         or tostring(Config.Webhooks.url or '') == '' then
-        callback(false)
+        if callback then
+            callback(false)
+        end
         return
     end
 
     PerformHttpRequest(
         Config.Webhooks.url,
         function(statusCode)
-            callback(statusCode >= 200 and statusCode < 300)
+            if callback then
+                callback(statusCode >= 200 and statusCode < 300)
+            end
         end,
         'POST',
         json.encode(payload),
@@ -71,11 +75,21 @@ AddEventHandler('onResourceStop', function(resourceName)
         return
     end
 
-    AirOpsWeather.Webhooks.Notify('shutdown', {
-        title = 'AirOps Weather gestoppt',
-        description = 'Die Wetterressource wurde beendet.',
-        level = 'WARNING'
-    })
+    local payload = {
+        username = Config.Webhooks.username,
+        avatar_url = Config.Webhooks.avatarUrl,
+        embeds = {
+            AirOpsWeather.Webhooks.BuildEmbed('shutdown', {
+                title = 'AirOps Weather gestoppt',
+                description = 'Die Wetterressource wurde beendet.',
+                level = 'WARNING'
+            })
+        }
+    }
+
+    -- Resource shutdown does not leave enough time for the retry queue.
+    -- Start the HTTP request directly while the resource is still stopping.
+    AirOpsWeather.Webhooks.SendRaw(payload)
 end)
 
 AddEventHandler(AirOpsWeather.Events.providerUnavailable, function(data)
@@ -108,12 +122,27 @@ end)
 AddEventHandler(AirOpsWeather.Events.warningsChanged, function(warnings)
     local highest = nil
     local rank = { INFO = 1, YELLOW = 2, ORANGE = 3, RED = 4 }
+    local aliases = {
+        info = 'INFO',
+        advisory = 'YELLOW',
+        warning = 'ORANGE',
+        severe = 'RED',
+        critical = 'RED'
+    }
 
     for _, warning in ipairs(warnings or {}) do
-        local severity = warning.severity or 'INFO'
+        local severity = tostring(warning.severity or 'INFO')
+        severity = aliases[string.lower(severity)] or string.upper(severity)
+
+        local normalized = {}
+        for key, value in pairs(warning) do
+            normalized[key] = value
+        end
+        normalized.severity = severity
+
         if not highest
             or (rank[severity] or 0) > (rank[highest.severity] or 0) then
-            highest = warning
+            highest = normalized
         end
     end
 

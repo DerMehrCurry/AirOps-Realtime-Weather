@@ -50,7 +50,6 @@ function AirOpsWeather.Zones.Register(name, definition)
     registry[name] = clone(definition)
 
     TriggerEvent(AirOpsWeather.Events.zoneRegistered, clone(registry[name]))
-    AirOpsWeather.Integrations.Publish('zoneRegistered', registry[name])
 
     return true
 end

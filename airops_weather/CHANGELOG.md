@@ -1,6 +1,24 @@
 # Changelog
 
-## [0.7.0-rc] - 2026-07-24
+## [0.7.1] - 2026-07-24
+
+### Fixed
+
+- prevent volatile timestamps from triggering continuous API and JSON change events
+- implement genuinely formatted output for `GetJSONPretty()`
+- remove duplicate `zoneRegistered` and `zoneChanged` integration publications
+- preserve actual Lua errors in self-test reports
+- normalize weather warning severities to `INFO`, `YELLOW`, `ORANGE`, and `RED`
+- send shutdown webhooks directly instead of placing them in a queue that cannot finish after resource stop
+- update remaining release-candidate documentation references
+
+### Compatibility
+
+- no exports removed
+- no SDK v1 methods removed
+- existing default-zone behavior preserved
+
+## [0.7.1] - 2026-07-24
 
 ### Added
 
@@ -17,7 +35,7 @@
 
 ### Changed
 
-- version bumped to `0.7.0-rc`
+- version bumped to `0.7.1`
 - zone resolution now uses the central zone registry
 - JSON documents include registered zone metadata
 - SDK v1 surface is frozen for the remainder of v0.7

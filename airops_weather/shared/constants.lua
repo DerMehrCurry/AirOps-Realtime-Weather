@@ -1,5 +1,5 @@
 AirOpsWeather = AirOpsWeather or {}
-AirOpsWeather.Version = '0.7.0-rc'
+AirOpsWeather.Version = '0.7.1'
 AirOpsWeather.APIVersion = 1
 AirOpsWeather.DefaultZone = 'default'
 AirOpsWeather.Events = {

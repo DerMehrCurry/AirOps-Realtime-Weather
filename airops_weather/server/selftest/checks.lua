@@ -75,8 +75,8 @@ function AirOpsWeather.SelfTest.Run()
         local ok, success, details = pcall(check.callback)
 
         if not ok then
-            success = false
             details = tostring(success)
+            success = false
         end
 
         local checkResult = result(

@@ -4,9 +4,47 @@ AirOpsWeather.JSON = AirOpsWeather.JSON or {}
 local lastSignature = nil
 local lastDocument = nil
 
+local VOLATILE_SIGNATURE_KEYS = {
+    checkedAt = true,
+    evaluatedAt = true,
+    generatedAt = true,
+    secondsFromNow = true,
+    secondsUntilNextPoll = true,
+    timestamp = true,
+    unixTime = true
+}
+
+local function cloneStable(value, seen)
+    if type(value) ~= 'table' then
+        return value
+    end
+
+    seen = seen or {}
+    if seen[value] then
+        return '<cycle>'
+    end
+
+    seen[value] = true
+    local copy = {}
+
+    for key, item in pairs(value) do
+        if not VOLATILE_SIGNATURE_KEYS[tostring(key)] then
+            copy[key] = cloneStable(item, seen)
+        end
+    end
+
+    seen[value] = nil
+    return copy
+end
+
 local function buildDocument(zone)
+    local resolvedZone, zoneError = AirOpsWeather.Zones.Resolve(zone)
+    if not resolvedZone then
+        return nil, zoneError
+    end
+
     local weather, errorMessage =
-        AirOpsWeather.API.GetWeatherProfile(zone)
+        AirOpsWeather.API.GetWeatherProfile(resolvedZone)
 
     if not weather then
         return nil, errorMessage
@@ -14,7 +52,7 @@ local function buildDocument(zone)
 
     local forecast = {}
     if Config.JSON.includeForecast then
-        forecast = AirOpsWeather.API.GetForecast(nil, zone) or {}
+        forecast = AirOpsWeather.API.GetForecast(nil, resolvedZone) or {}
     end
 
     local warnings = AirOpsWeather.API.GetWarnings(weather)
@@ -27,7 +65,7 @@ local function buildDocument(zone)
         apiVersion = AirOpsWeather.APIVersion,
         sdkVersion = Config.SDK.defaultVersion,
         provider = AirOpsWeather.Providers.GetActiveName(),
-        zone = AirOpsWeather.Zones.Resolve(zone),
+        zone = resolvedZone,
         zones = AirOpsWeather.Zones.List(),
         timestamp = os.time(),
         weather = weather,
@@ -49,15 +87,68 @@ local function buildDocument(zone)
     return document
 end
 
-local function encode(document, pretty)
-    if pretty and json.encode then
-        -- FiveM's JSON implementation does not consistently expose a pretty
-        -- formatter. The beta keeps one canonical payload and exposes the
-        -- pretty export as a compatibility endpoint.
-        return json.encode(document)
+local function prettyPrint(payload, indentSize)
+    indentSize = math.max(1, tonumber(indentSize) or 2)
+    local output = {}
+    local depth = 0
+    local inString = false
+    local escaped = false
+
+    local function newline()
+        output[#output + 1] = '\n'
+        output[#output + 1] = string.rep(' ', depth * indentSize)
     end
 
-    return json.encode(document)
+    for index = 1, #payload do
+        local character = payload:sub(index, index)
+
+        if inString then
+            output[#output + 1] = character
+
+            if escaped then
+                escaped = false
+            elseif character == '\\' then
+                escaped = true
+            elseif character == '"' then
+                inString = false
+            end
+        elseif character == '"' then
+            inString = true
+            output[#output + 1] = character
+        elseif character == '{' or character == '[' then
+            output[#output + 1] = character
+            depth = depth + 1
+            newline()
+        elseif character == '}' or character == ']' then
+            depth = math.max(0, depth - 1)
+            newline()
+            output[#output + 1] = character
+        elseif character == ',' then
+            output[#output + 1] = character
+            newline()
+        elseif character == ':' then
+            output[#output + 1] = ': '
+        elseif not character:match('%s') then
+            output[#output + 1] = character
+        end
+    end
+
+    return table.concat(output)
+end
+
+local function encode(document, pretty)
+    local payload = json.encode(document)
+
+    if pretty then
+        return prettyPrint(payload, Config.JSON.prettyIndent)
+    end
+
+    return payload
+end
+
+local function signature(document)
+    local ok, encoded = pcall(json.encode, cloneStable(document))
+    return ok and encoded or tostring(document)
 end
 
 function AirOpsWeather.JSON.GetDocument(zone)
@@ -74,21 +165,19 @@ function AirOpsWeather.JSON.Get(zone, pretty)
         return nil, errorMessage
     end
 
-    local payload = encode(document, pretty)
-    local signature = payload
+    local currentSignature = signature(document)
 
-    if signature ~= lastSignature then
-        lastSignature = signature
+    if currentSignature ~= lastSignature then
+        lastSignature = currentSignature
         lastDocument = document
         TriggerEvent(AirOpsWeather.Events.jsonUpdated, document)
-        AirOpsWeather.Integrations.Publish('jsonUpdated', document)
     end
 
     AirOpsWeather.IntegrationMetrics.Increment(
         pretty and 'jsonPrettyExports' or 'jsonExports'
     )
 
-    return payload
+    return encode(document, pretty)
 end
 
 function AirOpsWeather.JSON.GetLastDocument()

@@ -1,6 +1,6 @@
 # Weather Zones
 
-v0.7.0-rc stabilizes the zone-aware API.
+v0.7.1 stabilizes the zone-aware API.
 
 The resource still uses one shared weather state by default:
 

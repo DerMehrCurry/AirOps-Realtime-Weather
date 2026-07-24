@@ -79,3 +79,8 @@ AddEventHandler(
         }, AirOpsWeather.Events.zoneChanged)
     end
 )
+
+
+AddEventHandler(AirOpsWeather.Events.jsonUpdated, function(document)
+    publish('jsonUpdated', document, AirOpsWeather.Events.jsonUpdated)
+end)

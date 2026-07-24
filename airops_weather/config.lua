@@ -34,7 +34,7 @@ Config.Zones = {
     enabled = true,
     default = 'default',
 
-    -- v0.7.0-rc still uses one shared weather state. Additional zones can
+    -- v0.7.1 still uses one shared weather state. Additional zones can
     -- already be registered for integrations and future configuration.
     sharedState = true,
 
