@@ -1,4 +1,4 @@
-# Commit changes – v0.7.2.1
+# Commit changes – v0.7.2.2
 
 ## Recommended commit
 
@@ -13,17 +13,17 @@ fix(startup): initialize provider registry before dependent modules
 - fix nil AirOpsWeather.Providers during Open-Meteo registration
 - fix resulting nil AirOpsWeather.Validation startup error
 - keep existing configuration, exports and SDK compatibility
-- bump version to v0.7.2.1
+- bump version to v0.7.2.2
 ```
 
 ## Git tag
 
 ```text
-v0.7.2.1
+v0.7.2.2
 ```
 
 ## GitHub release title
 
 ```text
-AirOps Realtime Weather Community v0.7.2.1
+AirOps Realtime Weather Community v0.7.2.2
 ```

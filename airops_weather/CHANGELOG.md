@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.2.2] - 2026-07-24
+
+### Fixed
+
+- Fixed persistent `AirOpsWeather.Providers` and `AirOpsWeather.Validation` nil errors during resource startup.
+- Added a central server bootstrap that loads every server module into one shared Lua environment.
+- Preserved the required dependency order for provider registration, validation, SDK, integrations, diagnostics and startup.
+- Added explicit module loading, compilation and initialization error reporting.
+
 ## [0.7.2.1] - 2026-07-24
 
 ### Fixed
