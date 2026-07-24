@@ -39,6 +39,14 @@ Manual command: `airops_weather_update`
 
 Weather data by Open-Meteo. See `LICENSE`.
 
+
+## Time synchronization
+
+AirOps pauses GTA's accelerated native clock while real-time synchronization is active.
+The displayed time is calculated locally from the last authoritative server timestamp and
+updated once per second. A new server timestamp is requested periodically to correct drift.
+
+
 ## Natural Disasters compatibility
 
 Version 0.1.1 can delegate all client weather synchronization to

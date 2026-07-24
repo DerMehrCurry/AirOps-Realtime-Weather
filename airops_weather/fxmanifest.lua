@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'AirOps Development'
 description 'Core-independent real-time weather and clock synchronization for FiveM.'
-version '0.1.2'
+version '0.1.3'
 
 lua54 'yes'
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.3] - 2026-07-24
+
+### Fixed
+
+- stop the native GTA clock from advancing faster than real time between synchronizations
+- remove visible time jumps between real time and approximately five minutes ahead
+- update the locally calculated real clock once per second
+- release the paused native clock when AirOps stops or relinquishes time control
+
 ## [0.1.2] - 2026-07-24
 
 ### Fixed

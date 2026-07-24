@@ -19,8 +19,13 @@ Config.Provider = {
 
 Config.Time = {
     enabled = true,
+
+    -- Request a fresh authoritative timestamp from the server every five minutes.
     syncIntervalSeconds = 300,
-    clientCorrectionIntervalSeconds = 10
+
+    -- The GTA clock normally advances much faster than real time. AirOps pauses the
+    -- native clock and applies the locally calculated real time at this interval.
+    localUpdateIntervalMilliseconds = 1000
 }
 
 Config.Weather = {
