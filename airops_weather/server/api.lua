@@ -310,7 +310,11 @@ function AirOpsWeather.API.GetTime(zone)
             + math.max(0, unixTime - (tonumber(override.setAt) or unixTime))
         ) % 86400
     else
-        secondsOfDay = (unixTime + (tonumber(state.timezoneOffsetSeconds) or 0)) % 86400
+        local utc = os.date('!*t', unixTime)
+        local utcSecondsOfDay = (utc.hour * 3600) + (utc.min * 60) + utc.sec
+        secondsOfDay = (
+            utcSecondsOfDay + (tonumber(state.timezoneOffsetSeconds) or 0)
+        ) % 86400
     end
 
     return {

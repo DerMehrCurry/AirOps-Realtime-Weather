@@ -2,6 +2,7 @@ AirOpsWeather = AirOpsWeather or {}
 
 local state = {
     serverUnixTime = 0,
+    serverUtcSecondsOfDay = nil,
     timezoneOffsetSeconds = 0,
     receivedAt = 0,
     timeOverride = {
@@ -16,6 +17,7 @@ local SECONDS_PER_DAY = 86400
 
 function AirOpsWeather.SetTimeState(data)
     state.serverUnixTime = tonumber(data.serverUnixTime) or 0
+    state.serverUtcSecondsOfDay = tonumber(data.serverUtcSecondsOfDay)
     state.timezoneOffsetSeconds = tonumber(data.timezoneOffsetSeconds) or 0
     state.receivedAt = GetGameTimer()
 
@@ -53,8 +55,16 @@ local function getRealtimeClock()
             + elapsedSeconds
         ) % SECONDS_PER_DAY
     else
+        -- Prefer the explicit UTC clock-of-day supplied by the server. This
+        -- avoids platform-specific os.time() timezone behaviour that can apply
+        -- the configured timezone offset twice on some FiveM hosts.
+        local utcSecondsOfDay = state.serverUtcSecondsOfDay
+        if utcSecondsOfDay == nil then
+            utcSecondsOfDay = state.serverUnixTime % SECONDS_PER_DAY
+        end
+
         secondsOfDay = (
-            state.serverUnixTime
+            utcSecondsOfDay
             + state.timezoneOffsetSeconds
             + elapsedSeconds
         ) % SECONDS_PER_DAY

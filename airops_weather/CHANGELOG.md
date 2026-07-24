@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.2.5] - 2026-07-24
+
+### Fixed
+
+- included the UTC-safe timezone synchronization fix so local time is no longer two hours ahead
+- initialized `AirOpsWeather.ValidWeatherTypes` in the shared weather mapping module
+- fixed false `MISSING_WEATHER_MAPPING` validation failures during startup
+- provider startup is no longer blocked when the built-in GTA weather mapping is present
+- retained compatibility with Open-Meteo, Natural Disasters integration, SDK v1 and existing configuration files
+
+## [0.7.2.4] - 2026-07-24
+
+### Fixed
+
+- corrected a two-hour clock offset on hosts where `os.time()` already reflects local server time
+- added an explicit UTC seconds-of-day value to the server sync payload
+- client time synchronization now applies the configured Open-Meteo timezone offset exactly once
+- public time API now derives UTC time from `os.date('!*t')` before applying the location offset
+
 ## [0.7.2.3] - 2026-07-24
 
 ### Fixed

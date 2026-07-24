@@ -1,4 +1,18 @@
 AirOpsWeather = AirOpsWeather or {}
+
+-- Supported GTA V weather types produced by the Open-Meteo mapping.
+-- Validation uses this registry to confirm that a usable mapping is loaded.
+AirOpsWeather.ValidWeatherTypes = AirOpsWeather.ValidWeatherTypes or {
+    EXTRASUNNY = true,
+    CLEAR = true,
+    CLOUDS = true,
+    OVERCAST = true,
+    RAIN = true,
+    THUNDER = true,
+    FOGGY = true,
+    SNOWLIGHT = true,
+    BLIZZARD = true
+}
 local thunder={[95]=true,[96]=true,[99]=true}
 local rain={[51]=true,[53]=true,[55]=true,[56]=true,[57]=true,[61]=true,[63]=true,[65]=true,[66]=true,[67]=true,[80]=true,[81]=true,[82]=true}
 local snow={[71]=true,[73]=true,[75]=true,[77]=true,[85]=true,[86]=true}

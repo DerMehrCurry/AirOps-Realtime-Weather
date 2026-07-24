@@ -1,26 +1,27 @@
-# Commit changes – v0.7.2.3
+# Commit changes – v0.7.2.5
 
-## Commit
+## Commit title
 
 ```text
-fix(selftest): consume validation report from second return value
+fix(validation): register supported GTA weather mappings
 ```
 
-## Changes
+## Commit description
 
-- fix configuration self-test indexing a boolean value
-- read the validation report from the second return value of `Validation.Run()`
-- add a defensive cached-result fallback
-- bump version to v0.7.2.3
+- include the UTC-safe timezone synchronization correction
+- define the supported GTA weather type registry in `shared/weather_mapping.lua`
+- prevent false `MISSING_WEATHER_MAPPING` validation errors
+- allow Open-Meteo provider startup when the built-in mapping is loaded
+- bump version to v0.7.2.5
 
 ## Tag
 
 ```text
-v0.7.2.3
+v0.7.2.5
 ```
 
 ## Release title
 
 ```text
-AirOps Realtime Weather Community v0.7.2.3
+AirOps Realtime Weather Community v0.7.2.5
 ```

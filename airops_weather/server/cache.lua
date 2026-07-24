@@ -19,6 +19,12 @@ local cache = {
     staleWarningShown = false
 }
 
+
+local function utcSecondsOfDay(timestamp)
+    local utc = os.date('!*t', timestamp or os.time())
+    return (utc.hour * 3600) + (utc.min * 60) + utc.sec
+end
+
 local function angularDifference(first, second)
     first = tonumber(first) or 0
     second = tonumber(second) or 0
@@ -191,6 +197,7 @@ function AirOpsWeather.PublicState()
         stale = health.stale,
         cacheAgeSeconds = health.ageSeconds,
         serverUnixTime = os.time(),
+        serverUtcSecondsOfDay = utcSecondsOfDay(),
         timezoneOffsetSeconds = cache.timezoneOffsetSeconds,
         currentWeather = cache.currentWeather,
         previousWeather = cache.previousWeather,
