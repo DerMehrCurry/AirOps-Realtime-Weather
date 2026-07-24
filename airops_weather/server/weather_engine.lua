@@ -1,6 +1,12 @@
 AirOpsWeather = AirOpsWeather or {}
 
-function AirOpsWeather.ApplyWeatherCandidate(candidate, weatherClass, source, force, transitionSeconds)
+function AirOpsWeather.ApplyWeatherCandidate(
+    candidate,
+    weatherClass,
+    source,
+    force,
+    transitionSeconds
+)
     local cache = AirOpsWeather.GetCache()
 
     if AirOpsWeather.Override
@@ -30,13 +36,19 @@ function AirOpsWeather.ApplyWeatherCandidate(candidate, weatherClass, source, fo
     AirOpsWeather.SetWeather(candidate, weatherClass, transitionSeconds)
 
     if oldWeather ~= candidate then
+        AirOpsWeather.Metrics.Increment('weatherChanges')
         AirOpsWeather.Info(
             'Weather changed: %s -> %s (%s)',
             oldWeather,
             candidate,
             source or 'unknown'
         )
-        TriggerEvent(AirOpsWeather.Events.weatherChanged, oldWeather, candidate, source)
+        TriggerEvent(
+            AirOpsWeather.Events.weatherChanged,
+            oldWeather,
+            candidate,
+            source
+        )
     end
 
     if AirOpsWeather.Integrations
@@ -55,7 +67,12 @@ function AirOpsWeather.ProcessProviderPayload(payload)
 
     local candidate, weatherClass = AirOpsWeather.MapWeather(payload.current)
     AirOpsWeather.SetSuccessfulFetch(payload)
-    AirOpsWeather.ApplyWeatherCandidate(candidate, weatherClass, 'current observation', false)
+    local changed = AirOpsWeather.ApplyWeatherCandidate(
+        candidate,
+        weatherClass,
+        'current observation',
+        false
+    )
 
     if Config.Forecast and Config.Forecast.enabled then
         AirOpsWeather.BuildForecastTimeline(payload.forecast)
@@ -63,13 +80,29 @@ function AirOpsWeather.ProcessProviderPayload(payload)
         AirOpsWeather.SetTimeline({})
     end
 
-    return true
+    return true, changed
 end
 
-function AirOpsWeather.BroadcastState(target)
+function AirOpsWeather.BroadcastState(target, force)
+    target = target or -1
+
+    if target == -1 and not AirOpsWeather.ShouldBroadcast(force) then
+        AirOpsWeather.Metrics.RecordBroadcast(target, true)
+        AirOpsWeather.Debug('Global state broadcast suppressed; no relevant change.')
+        return false
+    end
+
     TriggerClientEvent(
         AirOpsWeather.Events.syncState,
-        target or -1,
+        target,
         AirOpsWeather.PublicState()
     )
+
+    AirOpsWeather.Metrics.RecordBroadcast(target, false)
+
+    if target == -1 then
+        AirOpsWeather.MarkBroadcastSnapshot()
+    end
+
+    return true
 end

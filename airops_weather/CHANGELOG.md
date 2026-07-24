@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.4.0] - 2026-07-24
+
+### Added
+
+- internal API, broadcast, timeline and weather-change metrics
+- provider request watchdog with late-callback protection
+- stale-cache health state and warning
+- configurable broadcast significance thresholds
+- `getPerformanceMetrics` server export
+- Natural Disasters resource start/stop handling
+
+### Changed
+
+- suppress unchanged global state broadcasts
+- retain a periodic safety heartbeat for long-running clients
+- reduce Natural Disasters polling during normal operation
+- increase standalone client weather reinforcement interval to 60 seconds
+- replace the permanent override-expiry loop with scheduled callbacks
+- restore an active manual override after Natural Disasters releases control
+- expand `airops_weather_status` with performance and health diagnostics
+
+### Fixed
+
+- prevent delayed provider callbacks from creating duplicate scheduler chains
+- immediately return to standalone mode when Natural Disasters stops
+- preserve manual weather priority when external disaster control ends
+
 ## [0.3.0] - 2026-07-24
 
 ### Added

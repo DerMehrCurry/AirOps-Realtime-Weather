@@ -79,8 +79,22 @@ function AirOpsWeather.Integrations.SetExternalWeatherControl(active, controller
     AirOpsWeather.Info('External weather control released; restoring real weather.')
 
     local cache = AirOpsWeather.GetCache()
-    if cache and cache.currentWeather then
-        AirOpsWeather.Integrations.ApplyNaturalDisastersWeather(cache.currentWeather, true)
+    local override = AirOpsWeather.Override
+        and AirOpsWeather.Override.GetState
+        and AirOpsWeather.Override.GetState()
+        or nil
+
+    local desiredWeather = override
+        and override.weather
+        and override.weather.active
+        and override.weather.value
+        or (cache and cache.currentWeather)
+
+    if desiredWeather then
+        AirOpsWeather.Integrations.ApplyNaturalDisastersWeather(
+            desiredWeather,
+            true
+        )
     end
 
     return true
@@ -161,6 +175,54 @@ exports('getNaturalDisastersIntegrationState', function()
     return AirOpsWeather.Integrations.GetNaturalDisastersState()
 end)
 
+AddEventHandler('onResourceStart', function(resourceName)
+    if resourceName ~= settings.resourceName then
+        return
+    end
+
+    state.available = true
+    state.missingWarningShown = false
+    AirOpsWeather.Info(
+        '%s started; Natural Disasters compatibility mode is available.',
+        settings.resourceName
+    )
+
+    local cache = AirOpsWeather.GetCache()
+    local override = AirOpsWeather.Override
+        and AirOpsWeather.Override.GetState
+        and AirOpsWeather.Override.GetState()
+        or nil
+
+    local desiredWeather = override
+        and override.weather
+        and override.weather.active
+        and override.weather.value
+        or cache.currentWeather
+
+    if desiredWeather then
+        AirOpsWeather.Integrations.ApplyNaturalDisastersWeather(
+            desiredWeather,
+            true
+        )
+    end
+end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName ~= settings.resourceName then
+        return
+    end
+
+    state.available = false
+    state.externalControl = false
+    state.controller = nil
+    state.lastObservedWeather = nil
+    AirOpsWeather.Warn(
+        '%s stopped. AirOps immediately returned to standalone mode.',
+        settings.resourceName
+    )
+    AirOpsWeather.BroadcastState(-1, true)
+end)
+
 CreateThread(function()
     if not AirOpsWeather.Integrations.IsNaturalDisastersConfigured() then
         AirOpsWeather.Info('Natural Disasters integration disabled; standalone weather mode active.')
@@ -224,6 +286,18 @@ CreateThread(function()
             end
         end
 
-        Wait(settings.monitorIntervalMilliseconds or 1000)
+        local waitMilliseconds
+
+        if state.externalControl then
+            waitMilliseconds = tonumber(
+                settings.activeMonitorIntervalMilliseconds
+            ) or 2000
+        else
+            waitMilliseconds = tonumber(
+                settings.idleMonitorIntervalMilliseconds
+            ) or 10000
+        end
+
+        Wait(math.max(1000, waitMilliseconds))
     end
 end)

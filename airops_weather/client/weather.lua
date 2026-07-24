@@ -71,7 +71,7 @@ CreateThread(function()
             SetOverrideWeather(weatherState.currentWeather)
         end
 
-        Wait(30000)
+        Wait(tonumber(Config.Performance.clientWeatherReinforcementMilliseconds) or 60000)
     end
 end)
 

@@ -161,13 +161,17 @@ RegisterCommand('airops_weather_status', function(source)
         and AirOpsWeather.Integrations.GetNaturalDisastersState()
         or nil
 
+    local health = AirOpsWeather.CheckCacheHealth()
+    local metrics = AirOpsWeather.Metrics.Get()
+
     AirOpsWeather.Info(
-        'Status v%s | weather=%s | weatherMode=%s | timeMode=%s | cacheAge=%ds | timeline=%d | next=%s | nextPoll=%ds',
+        'Status v%s | weather=%s | weatherMode=%s | timeMode=%s | cacheAge=%ds | stale=%s | timeline=%d | next=%s | nextPoll=%ds',
         AirOpsWeather.Version,
         cache.currentWeather,
         override.weather.active and 'manual' or 'realtime',
         override.time.active and 'manual' or 'realtime',
-        cache.fetchedAt > 0 and (os.time() - cache.fetchedAt) or -1,
+        health.ageSeconds,
+        tostring(health.stale),
         #cache.timeline,
         nextEntry and (nextEntry.weather .. ' in ' .. math.max(0, nextEntry.at - os.time()) .. 's' .. (nextEntry.intermediate and ' (transition)' or ' (target)')) or 'none',
         cache.nextPollAt > 0 and math.max(0, cache.nextPollAt - os.time()) or -1
@@ -181,6 +185,27 @@ RegisterCommand('airops_weather_status', function(source)
             tostring(integration.controller)
         )
     end
+
+    AirOpsWeather.Info(
+        'Performance | requests=%d | success=%d | failures=%d | timeouts=%d | last=%dms | average=%dms | broadcasts=%d | suppressed=%d | directSyncs=%d',
+        metrics.apiRequests,
+        metrics.apiSuccesses,
+        metrics.apiFailures,
+        metrics.apiTimeouts,
+        metrics.lastRequestDurationMilliseconds,
+        metrics.averageRequestDurationMilliseconds,
+        metrics.broadcasts,
+        metrics.suppressedBroadcasts,
+        metrics.directSyncs
+    )
+
+    AirOpsWeather.Info(
+        'Engine | weatherChanges=%d | timelineBuilds=%d | timelineExecutions=%d | uptime=%ds',
+        metrics.weatherChanges,
+        metrics.timelineBuilds,
+        metrics.timelineExecutions,
+        metrics.uptimeSeconds
+    )
 end, false)
 
 exports('getWeatherData', function()

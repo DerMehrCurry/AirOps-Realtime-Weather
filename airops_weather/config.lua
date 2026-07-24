@@ -79,7 +79,10 @@ Config.Integrations = {
         enabled = true,
         resourceName = 'night_natural_disasters',
         delegateWeather = true,
-        monitorIntervalMilliseconds = 1000,
+        -- Slow checks during normal operation, faster checks only while an
+        -- external disaster owns the weather.
+        idleMonitorIntervalMilliseconds = 10000,
+        activeMonitorIntervalMilliseconds = 2000,
         applyGraceMilliseconds = 5000,
         pauseAirOpsTime = false,
         automaticOwnershipDetection = true
@@ -97,7 +100,34 @@ Config.AdaptivePolling = {
 Config.Retry = {
     initialSeconds = 60,
     multiplier = 2,
-    maximumSeconds = 900
+    maximumSeconds = 900,
+
+    -- A request callback arriving after this watchdog is ignored.
+    requestTimeoutSeconds = 20
+}
+
+Config.Performance = {
+    -- Do not broadcast the full state after every provider refresh when weather,
+    -- wind and temperature stayed effectively unchanged.
+    suppressUnchangedBroadcasts = true,
+
+    -- A periodic safety broadcast keeps long-running clients synchronized even
+    -- when provider data remains unchanged.
+    heartbeatBroadcastSeconds = 900,
+
+    -- Changes smaller than these thresholds do not trigger a global broadcast.
+    windChangeThresholdKmh = 2.0,
+    windDirectionThresholdDegrees = 15.0,
+    temperatureChangeThresholdCelsius = 1.0,
+
+    -- Standalone clients reinforce the persistent weather only at this interval.
+    clientWeatherReinforcementMilliseconds = 60000
+}
+
+Config.Health = {
+    -- The cache remains usable during outages, but diagnostics mark it stale.
+    staleCacheSeconds = 1800,
+    warnWhenCacheBecomesStale = true
 }
 
 -- Manual overrides are optional and protected by the airops.weather.override ACE.

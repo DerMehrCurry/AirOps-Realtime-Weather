@@ -1,6 +1,11 @@
 AirOpsWeather = AirOpsWeather or {}
 AirOpsWeather.Override = AirOpsWeather.Override or {}
 
+local expiryGeneration = {
+    weather = 0,
+    time = 0
+}
+
 local state = {
     weather = {
         active = false,
@@ -47,8 +52,40 @@ end
 
 local function broadcast()
     if AirOpsWeather.BroadcastState then
-        AirOpsWeather.BroadcastState(-1)
+        AirOpsWeather.BroadcastState(-1, true)
     end
+end
+
+local function scheduleExpiry(scope, expiresAt)
+    expiryGeneration[scope] = expiryGeneration[scope] + 1
+    local generation = expiryGeneration[scope]
+
+    if not expiresAt or expiresAt <= 0 then
+        return
+    end
+
+    local delayMilliseconds = math.max(
+        0,
+        (expiresAt - os.time()) * 1000
+    )
+
+    SetTimeout(delayMilliseconds, function()
+        if generation ~= expiryGeneration[scope] then
+            return
+        end
+
+        if scope == 'weather'
+            and state.weather.active
+            and state.weather.expiresAt > 0
+            and os.time() >= state.weather.expiresAt then
+            AirOpsWeather.Override.ClearWeather('expired')
+        elseif scope == 'time'
+            and state.time.active
+            and state.time.expiresAt > 0
+            and os.time() >= state.time.expiresAt then
+            AirOpsWeather.Override.ClearTime('expired')
+        end
+    end)
 end
 
 function AirOpsWeather.Override.IsWeatherActive()
@@ -99,6 +136,8 @@ function AirOpsWeather.Override.SetWeather(weather, durationMinutes, source, tra
         or tonumber(Config.Weather.transitionSeconds)
         or 180
 
+    scheduleExpiry('weather', state.weather.expiresAt)
+
     local cache = AirOpsWeather.GetCache()
     AirOpsWeather.SetWeather(weather, 'manual', state.weather.transitionSeconds)
 
@@ -144,6 +183,8 @@ function AirOpsWeather.Override.SetTime(hour, minute, durationMinutes, source)
     state.time.expiresAt = durationSeconds > 0 and (os.time() + durationSeconds) or 0
     state.time.source = source or 'manual'
 
+    scheduleExpiry('time', state.time.expiresAt)
+
     AirOpsWeather.Info(
         'Manual time override enabled: %02d:%02d%s.',
         hour,
@@ -165,6 +206,7 @@ function AirOpsWeather.Override.ClearWeather(reason)
     state.weather.expiresAt = 0
     state.weather.source = nil
     state.weather.transitionSeconds = nil
+    expiryGeneration.weather = expiryGeneration.weather + 1
 
     local cache = AirOpsWeather.GetCache()
     local realtimeWeather, realtimeClass = AirOpsWeather.MapWeather(cache.raw or {})
@@ -198,6 +240,7 @@ function AirOpsWeather.Override.ClearTime(reason)
     state.time.setAt = 0
     state.time.expiresAt = 0
     state.time.source = nil
+    expiryGeneration.time = expiryGeneration.time + 1
 
     AirOpsWeather.Info('Manual time override cleared%s.', reason and (' (' .. reason .. ')') or '')
     broadcast()
@@ -219,21 +262,6 @@ function AirOpsWeather.Override.Clear(scope, reason)
     return changed
 end
 
-CreateThread(function()
-    while true do
-        local now = os.time()
-
-        if state.weather.active and state.weather.expiresAt > 0 and now >= state.weather.expiresAt then
-            AirOpsWeather.Override.ClearWeather('expired')
-        end
-
-        if state.time.active and state.time.expiresAt > 0 and now >= state.time.expiresAt then
-            AirOpsWeather.Override.ClearTime('expired')
-        end
-
-        Wait(1000)
-    end
-end)
 
 exports('setWeatherOverride', function(weather, durationMinutes, source, transitionSeconds)
     return AirOpsWeather.Override.SetWeather(weather, durationMinutes, source, transitionSeconds)

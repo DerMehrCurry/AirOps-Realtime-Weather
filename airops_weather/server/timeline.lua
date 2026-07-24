@@ -242,6 +242,7 @@ local function scheduleTimeline(entries, generation)
             end
 
             table.remove(cache.timeline, 1)
+            AirOpsWeather.Metrics.Increment('timelineExecutions')
             local changed = AirOpsWeather.ApplyWeatherCandidate(
                 entry.weather,
                 entry.class,
@@ -290,6 +291,7 @@ function AirOpsWeather.BuildForecastTimeline(forecast)
     targets = removeShortReversals(targets)
 
     local entries = expandTransitionTargets(targets, cache.currentWeather)
+    AirOpsWeather.Metrics.Increment('timelineBuilds')
     local generation = AirOpsWeather.SetTimeline(entries)
     scheduleTimeline(entries, generation)
 

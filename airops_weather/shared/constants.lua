@@ -1,5 +1,5 @@
 AirOpsWeather = AirOpsWeather or {}
-AirOpsWeather.Version = '0.3.0'
+AirOpsWeather.Version = '0.4.0'
 AirOpsWeather.Events = {
     requestSync = 'airops_weather:server:requestSync',
     syncState = 'airops_weather:client:syncState',

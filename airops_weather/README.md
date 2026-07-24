@@ -4,7 +4,7 @@ Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Version 0.3.0
+## Version 0.4.0
 
 Diese Entwicklungsversion enthält:
 
@@ -22,6 +22,11 @@ Diese Entwicklungsversion enthält:
 - manuelle Wetter- und Zeit-Overrides
 - zeitlich begrenzte Overrides mit automatischer Rückkehr zur Echtzeit
 - Serverbefehle, ACE-Rechte und Exports für andere Ressourcen
+- bedingte Client-Broadcasts statt Versand nach jedem API-Abruf
+- HTTP-Watchdog mit Schutz vor verspäteten Antworten
+- Cache-Stale-Erkennung bei längeren Provider-Ausfällen
+- adaptive Natural-Disasters-Prüfung
+- interne Performance- und Stabilitätsmetriken
 
 ## Installation
 
@@ -189,6 +194,8 @@ Config.Integrations = {
         enabled = true,
         resourceName = 'night_natural_disasters',
         delegateWeather = true,
+        idleMonitorIntervalMilliseconds = 10000,
+        activeMonitorIntervalMilliseconds = 2000,
         pauseAirOpsTime = false,
         automaticOwnershipDetection = true
     }
@@ -210,6 +217,80 @@ Explizite Steuerung aus einer anderen Serverressource:
 exports['airops_weather']:setExternalWeatherControl(true, 'natural_disasters')
 exports['airops_weather']:setExternalWeatherControl(false)
 ```
+
+
+## Performance und Stabilität
+
+v0.4.0 reduziert unnötige Dauerarbeit und macht den internen Zustand messbar.
+
+### Bedingte Broadcasts
+
+Nach einem erfolgreichen Provider-Abruf wird der vollständige Zustand nicht mehr
+automatisch an alle Clients gesendet. Ein Broadcast erfolgt nur bei:
+
+- geändertem GTA-Wetter
+- relevant geänderter Windgeschwindigkeit oder Windrichtung
+- relevant geänderter Temperatur
+- geändertem Override-Modus
+- Ablauf des Sicherheits-Heartbeats
+
+```lua
+Config.Performance = {
+    suppressUnchangedBroadcasts = true,
+    heartbeatBroadcastSeconds = 900,
+    windChangeThresholdKmh = 2.0,
+    windDirectionThresholdDegrees = 15.0,
+    temperatureChangeThresholdCelsius = 1.0,
+    clientWeatherReinforcementMilliseconds = 60000
+}
+```
+
+Direkte Synchronisationen neu beitretender Spieler werden niemals unterdrückt.
+
+### API-Watchdog
+
+```lua
+Config.Retry.requestTimeoutSeconds = 20
+```
+
+Antwortet der Provider nicht innerhalb des Zeitfensters, wird die Anfrage als
+fehlgeschlagen gewertet. Eine verspätete Antwort wird ignoriert und kann keine
+doppelte Planung oder parallele Retry-Kette auslösen.
+
+### Cache-Ausfallsicherheit
+
+```lua
+Config.Health = {
+    staleCacheSeconds = 1800,
+    warnWhenCacheBecomesStale = true
+}
+```
+
+Bei einem Provider-Ausfall bleibt das zuletzt bekannte Wetter aktiv. Nach dem
+konfigurierten Zeitraum wird der Cache in Diagnoseausgaben als `stale` markiert.
+
+### Diagnose
+
+```text
+airops_weather_status
+```
+
+Die Ausgabe enthält zusätzlich:
+
+- API-Anfragen, Erfolge, Fehler und Timeouts
+- letzte und durchschnittliche Antwortzeit
+- globale und unterdrückte Broadcasts
+- direkte Spieler-Synchronisationen
+- Wetterwechsel
+- Timeline-Erstellungen und ausgeführte Einträge
+- Ressourcen-Uptime
+
+Export:
+
+```lua
+local metrics = exports['airops_weather']:getPerformanceMetrics()
+```
+
 
 ## Server-Exports
 
