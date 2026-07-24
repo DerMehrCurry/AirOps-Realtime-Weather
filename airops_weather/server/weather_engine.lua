@@ -49,6 +49,10 @@ function AirOpsWeather.ApplyWeatherCandidate(
             candidate,
             source
         )
+
+        if AirOpsWeather.API and AirOpsWeather.API.EmitChanges then
+            AirOpsWeather.API.EmitChanges(false)
+        end
     end
 
     if AirOpsWeather.Integrations
@@ -102,6 +106,10 @@ function AirOpsWeather.BroadcastState(target, force)
 
     if target == -1 then
         AirOpsWeather.MarkBroadcastSnapshot()
+
+        if AirOpsWeather.API and AirOpsWeather.API.EmitChanges then
+            AirOpsWeather.API.EmitChanges(false)
+        end
     end
 
     return true

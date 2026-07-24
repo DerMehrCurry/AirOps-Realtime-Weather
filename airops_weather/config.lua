@@ -130,6 +130,39 @@ Config.Health = {
     warnWhenCacheBecomesStale = true
 }
 
+
+Config.API = {
+    enabled = true,
+
+    -- Emit local server events when standardized data changes.
+    emitEvents = true,
+
+    -- Client exports use the last authoritative state received from the server.
+    enableClientExports = true,
+
+    -- Values used for derived warnings and flight conditions.
+    warnings = {
+        strongWindKmh = 35,
+        severeWindKmh = 55,
+        lowVisibilityMeters = 3000,
+        criticalVisibilityMeters = 1200,
+        heavyPrecipitationMm = 4.0,
+        extremePrecipitationMm = 8.0
+    },
+
+    flight = {
+        yellowWindKmh = 30,
+        orangeWindKmh = 45,
+        redWindKmh = 60,
+        yellowGustKmh = 40,
+        orangeGustKmh = 55,
+        redGustKmh = 70,
+        yellowVisibilityMeters = 5000,
+        orangeVisibilityMeters = 2500,
+        redVisibilityMeters = 1000
+    }
+}
+
 -- Manual overrides are optional and protected by the airops.weather.override ACE.
 Config.Override = {
     enabled = true,

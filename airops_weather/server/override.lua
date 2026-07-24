@@ -159,6 +159,7 @@ function AirOpsWeather.Override.SetWeather(weather, durationMinutes, source, tra
     )
 
     TriggerEvent(AirOpsWeather.Events.weatherChanged, cache.previousWeather, weather, 'manual override')
+    TriggerEvent(AirOpsWeather.Events.overrideStarted, 'weather', AirOpsWeather.Override.GetState())
     broadcast()
     return true
 end
@@ -184,6 +185,8 @@ function AirOpsWeather.Override.SetTime(hour, minute, durationMinutes, source)
     state.time.source = source or 'manual'
 
     scheduleExpiry('time', state.time.expiresAt)
+
+    TriggerEvent(AirOpsWeather.Events.overrideStarted, 'time', AirOpsWeather.Override.GetState())
 
     AirOpsWeather.Info(
         'Manual time override enabled: %02d:%02d%s.',
@@ -226,6 +229,7 @@ function AirOpsWeather.Override.ClearWeather(reason)
     end
 
     AirOpsWeather.Info('Manual weather override cleared%s.', reason and (' (' .. reason .. ')') or '')
+    TriggerEvent(AirOpsWeather.Events.overrideEnded, 'weather', reason, AirOpsWeather.Override.GetState())
     broadcast()
     return true
 end
@@ -243,6 +247,7 @@ function AirOpsWeather.Override.ClearTime(reason)
     expiryGeneration.time = expiryGeneration.time + 1
 
     AirOpsWeather.Info('Manual time override cleared%s.', reason and (' (' .. reason .. ')') or '')
+    TriggerEvent(AirOpsWeather.Events.overrideEnded, 'time', reason, AirOpsWeather.Override.GetState())
     broadcast()
     return true
 end

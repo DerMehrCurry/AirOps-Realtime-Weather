@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.5.0] - 2026-07-24
+
+### Added
+
+- versioned public server API
+- `GetWeather`, `GetTime`, `GetState`, `GetForecast`, `GetFlightConditions` and `GetWarnings` exports
+- lowercase compatibility aliases for all new exports
+- client-side cached state, weather and time exports
+- standardized weather profile with intensity, source and transition data
+- derived road condition and recommended speed factor
+- configurable flight-condition categories
+- configurable weather warnings
+- state, profile, forecast, warning and override events
+- humidity and surface pressure provider fields
+- meteorological values on forecast timeline entries
+
+### Changed
+
+- legacy `getWeatherData` now returns the complete public API state
+- legacy `getForecastTimeline` uses the standardized forecast API
+- client sync state now contains precipitation, cloud cover, visibility, humidity and pressure
+- README expanded with API contracts and integration examples
+
+### Compatibility
+
+- existing v0.4.0 commands, overrides, Natural Disasters support and exports remain available
+- no framework dependency was introduced
+
 ## [0.4.0] - 2026-07-24
 
 ### Added

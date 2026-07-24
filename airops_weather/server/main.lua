@@ -62,6 +62,12 @@ AddEventHandler('onResourceStart', function(resourceName)
         Config.Location.longitude
     )
     AirOpsWeather.UpdateWeather()
+
+    SetTimeout(1000, function()
+        if AirOpsWeather.API and AirOpsWeather.API.EmitChanges then
+            AirOpsWeather.API.EmitChanges(true)
+        end
+    end)
 end)
 
 RegisterCommand('airops_weather_update', function(source)
@@ -209,6 +215,10 @@ RegisterCommand('airops_weather_status', function(source)
 end, false)
 
 exports('getWeatherData', function()
+    if AirOpsWeather.API and AirOpsWeather.API.GetState then
+        return AirOpsWeather.API.GetState()
+    end
+
     return AirOpsWeather.PublicState()
 end)
 
@@ -217,5 +227,9 @@ exports('forceWeatherUpdate', function()
 end)
 
 exports('getForecastTimeline', function()
+    if AirOpsWeather.API and AirOpsWeather.API.GetForecast then
+        return AirOpsWeather.API.GetForecast()
+    end
+
     return AirOpsWeather.GetCache().timeline
 end)

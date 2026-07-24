@@ -40,6 +40,9 @@ end
 
 local function hourlyData(forecast, index)
     return {
+        temperature = valueAt(forecast.temperature_2m, index),
+        humidity = valueAt(forecast.relative_humidity_2m, index),
+        pressure = valueAt(forecast.surface_pressure, index),
         weatherCode = valueAt(forecast.weather_code, index),
         precipitation = valueAt(forecast.precipitation, index),
         cloudCover = valueAt(forecast.cloud_cover, index),
@@ -215,7 +218,16 @@ local function expandTransitionTargets(targets, currentWeather)
                 offsetSeconds = target.offsetSeconds,
                 transitionSeconds = transitionDuration(weather),
                 intermediate = pathIndex < #path,
-                targetWeather = target.weather
+                targetWeather = target.weather,
+                temperature = target.temperature,
+                humidity = target.humidity,
+                pressure = target.pressure,
+                precipitation = target.precipitation,
+                cloudCover = target.cloudCover,
+                visibility = target.visibility,
+                windSpeed = target.windSpeed,
+                windDirection = target.windDirection,
+                windGusts = target.windGusts
             }
 
             lastAt = plannedAt
@@ -277,9 +289,20 @@ function AirOpsWeather.BuildForecastTimeline(forecast)
         local providerAt = firstProviderAt + ((index - 2) * 3600)
         local offsetSeconds = deterministicOffsetSeconds(forecast.time[index], weather)
 
+        local data = hourlyData(forecast, index)
+
         targets[#targets + 1] = {
             weather = weather,
             class = weatherClass,
+            temperature = tonumber(data.temperature),
+            humidity = tonumber(data.humidity),
+            pressure = tonumber(data.pressure),
+            precipitation = tonumber(data.precipitation) or 0,
+            cloudCover = tonumber(data.cloudCover) or 0,
+            visibility = tonumber(data.visibility) or 10000,
+            windSpeed = tonumber(data.windSpeed) or 0,
+            windDirection = tonumber(data.windDirection) or 0,
+            windGusts = tonumber(data.windGusts) or 0,
             providerAt = providerAt,
             at = providerAt + offsetSeconds,
             providerTime = forecast.time[index],

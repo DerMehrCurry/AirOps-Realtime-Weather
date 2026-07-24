@@ -7,8 +7,13 @@ RegisterNetEvent(AirOpsWeather.Events.syncState, function(state)
         return
     end
 
+    if AirOpsWeather.ClientAPI and AirOpsWeather.ClientAPI.SetState then
+        AirOpsWeather.ClientAPI.SetState(state)
+    end
+
     AirOpsWeather.SetTimeState(state)
     AirOpsWeather.ApplyWeatherState(state, not initialSyncCompleted)
+    TriggerEvent('airops_weather:client:stateChanged', state)
     initialSyncCompleted = true
 end)
 

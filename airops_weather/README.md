@@ -4,7 +4,7 @@ Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Version 0.4.0
+## Version 0.5.0
 
 Diese Entwicklungsversion enthält:
 
@@ -27,6 +27,10 @@ Diese Entwicklungsversion enthält:
 - Cache-Stale-Erkennung bei längeren Provider-Ausfällen
 - adaptive Natural-Disasters-Prüfung
 - interne Performance- und Stabilitätsmetriken
+- öffentliche Server- und Client-API für externe Ressourcen
+- standardisierte Wetterprofile mit Straße, Fluglage und Warnungen
+- ereignisbasierte Zustands-, Forecast- und Override-Änderungen
+- Luftfeuchtigkeit und Luftdruck aus Open-Meteo
 
 ## Installation
 
@@ -216,6 +220,180 @@ Explizite Steuerung aus einer anderen Serverressource:
 ```lua
 exports['airops_weather']:setExternalWeatherControl(true, 'natural_disasters')
 exports['airops_weather']:setExternalWeatherControl(false)
+```
+
+
+
+## Public API
+
+v0.5.0 macht AirOps zur zentralen Wetter- und Zeitquelle für andere Ressourcen.
+Die API-Version innerhalb der Rückgabewerte lautet aktuell `1`.
+
+### Server-Exports
+
+```lua
+local weather = exports['airops_weather']:GetWeather()
+local time = exports['airops_weather']:GetTime()
+local state = exports['airops_weather']:GetState()
+local forecast = exports['airops_weather']:GetForecast(12)
+local flight = exports['airops_weather']:GetFlightConditions()
+local warnings = exports['airops_weather']:GetWarnings()
+```
+
+Kleingeschriebene Aliase wie `getWeather()` bleiben ebenfalls verfügbar.
+
+### Wetterprofil
+
+```lua
+local profile = exports['airops_weather']:GetWeather()
+```
+
+Beispielstruktur:
+
+```lua
+{
+    apiVersion = 1,
+    resourceVersion = '0.5.0',
+    weather = 'RAIN',
+    class = 'precipitation',
+    intensity = 0.42,
+    temperatureCelsius = 18.2,
+    humidityPercent = 84,
+    pressureHpa = 1008,
+    precipitationMm = 2.1,
+    cloudCoverPercent = 92,
+    visibilityMeters = 7000,
+    wind = {
+        speedKmh = 22,
+        gustsKmh = 35,
+        directionDegrees = 180
+    },
+    road = {
+        condition = 'WET',
+        recommendedSpeedFactor = 0.85
+    },
+    flight = {
+        category = 'YELLOW',
+        flyable = true,
+        reasons = { 'precipitation' }
+    },
+    warnings = {}
+}
+```
+
+Mögliche Straßenbedingungen:
+
+```text
+DRY
+DAMP
+WET
+SNOW
+FLOODED
+```
+
+Mögliche Flugkategorien:
+
+```text
+GREEN
+YELLOW
+ORANGE
+RED
+```
+
+`flyable` ist nur eine technische Bewertung anhand der konfigurierten Grenzwerte.
+Die endgültige Entscheidung bleibt bei der verwendenden Ressource beziehungsweise
+dem RP-Personal.
+
+### Forecast
+
+```lua
+local forecast = exports['airops_weather']:GetForecast(6)
+```
+
+Die Community Edition stellt maximal die intern gehaltenen zwölf Stunden bereit.
+Die Rückgabe enthält die flexible AirOps-Timeline einschließlich Zwischenstufen,
+Zielzeit, Provider-Zeitpunkt und meteorologischen Werten.
+
+### Events
+
+Andere Server-Ressourcen können ohne Polling reagieren:
+
+```lua
+AddEventHandler('airops_weather:weatherChanged', function(oldWeather, newWeather, source)
+    print(oldWeather, newWeather, source)
+end)
+
+AddEventHandler('airops_weather:profileChanged', function(profile)
+    print(profile.weather, profile.temperatureCelsius)
+end)
+
+AddEventHandler('airops_weather:forecastChanged', function(forecast)
+    print(('Forecast entries: %d'):format(#forecast))
+end)
+
+AddEventHandler('airops_weather:warningsChanged', function(warnings)
+    print(('Warnings: %d'):format(#warnings))
+end)
+
+AddEventHandler('airops_weather:overrideStarted', function(scope, overrideState)
+    print(('Override started: %s'):format(scope))
+end)
+
+AddEventHandler('airops_weather:overrideEnded', function(scope, reason, overrideState)
+    print(('Override ended: %s'):format(scope))
+end)
+```
+
+Zusätzlich wird `airops_weather:stateChanged` mit dem vollständigen API-Zustand
+ausgelöst.
+
+### Client-Exports
+
+Client-Ressourcen greifen auf den zuletzt vom Server synchronisierten Zustand zu:
+
+```lua
+local weather = exports['airops_weather']:GetCurrentWeather()
+local time = exports['airops_weather']:GetCurrentTime()
+local state = exports['airops_weather']:GetCurrentState()
+```
+
+Client-Event:
+
+```lua
+AddEventHandler('airops_weather:client:stateChanged', function(state)
+    print(state.currentWeather)
+end)
+```
+
+Die Client-API führt keine eigenen HTTP-Anfragen aus.
+
+### Konfiguration der Bewertungen
+
+```lua
+Config.API = {
+    enabled = true,
+    emitEvents = true,
+    enableClientExports = true,
+    warnings = {
+        strongWindKmh = 35,
+        severeWindKmh = 55,
+        lowVisibilityMeters = 3000,
+        criticalVisibilityMeters = 1200,
+        heavyPrecipitationMm = 4.0,
+        extremePrecipitationMm = 8.0
+    },
+    flight = {
+        yellowWindKmh = 30,
+        orangeWindKmh = 45,
+        redWindKmh = 60,
+        yellowGustKmh = 40,
+        orangeGustKmh = 55,
+        redGustKmh = 70,
+        yellowVisibilityMeters = 5000,
+        orangeVisibilityMeters = 2500,
+        redVisibilityMeters = 1000
+    }
+}
 ```
 
 
