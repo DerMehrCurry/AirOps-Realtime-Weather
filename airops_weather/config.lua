@@ -162,7 +162,10 @@ Config.Time = {
 
     -- The GTA clock normally advances much faster than real time. AirOps pauses the
     -- native clock and applies the locally calculated real time at this interval.
-    localUpdateIntervalMilliseconds = 1000
+    localUpdateIntervalMilliseconds = 1000,
+
+    -- Hard-correct only when the GTA clock differs by this many seconds.
+    driftCorrectionThresholdSeconds = 2
 }
 
 Config.Weather = {

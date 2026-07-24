@@ -7,29 +7,15 @@
   Built for Roleplay. Made for Community.
 </p>
 
-
-
-> [!IMPORTANT]
-> ## 🧪 Long Term Test
->
-> **AirOps Realtime Weather v0.7.1** befindet sich derzeit in einer erweiterten Langzeittestphase.
->
-> Während dieser Phase liegt der Fokus ausschließlich auf Stabilität, Performance und Bugfixes. Neue Funktionen werden erst mit **v0.8.0 – Performance & Enterprise** entwickelt.
->
-> Feedback und Bug Reports sind jederzeit willkommen.
-
-
-
-
 # AirOps Realtime Weather – Community Edition
 
 Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Stabilization Patch – v0.7.1
+## Stabilization Patch – v0.7.2
 
-v0.7.1 closes the v0.7 development cycle with targeted correctness fixes:
+v0.7.2 closes the v0.7 development cycle with targeted correctness fixes:
 
 - stable delta detection without timestamp-only changes
 - real pretty JSON output
@@ -40,7 +26,7 @@ v0.7.1 closes the v0.7 development cycle with targeted correctness fixes:
 
 No public export or SDK v1 method was removed.
 
-## Version 0.7.1
+## Version 0.7.2
 
 Diese Entwicklungsversion enthält:
 
@@ -307,7 +293,7 @@ docs/migration/
 Es wurden keine bisherigen Exports oder SDK-v1-Methoden entfernt.
 
 
-## Ecosystem & Integration – v0.7.1
+## Ecosystem & Integration – v0.7.2
 
 ### Standardisierte JSON-Ausgabe
 
@@ -364,7 +350,7 @@ Die mitgelieferten Beispiele zeigen eine einfache Event-Integration und eine
 HEMS-Flugstatusabfrage.
 
 
-## Integration SDK – v0.7.1
+## Integration SDK – v0.7.2
 
 Die Alpha-Version führt eine versionierte SDK-Schicht ein. Bestehende Exports
 bleiben vollständig erhalten.
@@ -447,7 +433,7 @@ Unbekannte Zonen liefern `nil` und eine eindeutige Fehlermeldung. Dadurch ist
 die Schnittstelle bereits für spätere Wetterzonen vorbereitet, ohne das
 bestehende globale Wetterverhalten zu verändern.
 
-## Provider Framework – v0.7.1
+## Provider Framework – v0.7.2
 
 Provider werden über eine gemeinsame Schnittstelle registriert. Der Scheduler
 kennt keine provider-spezifische Implementierung mehr.
@@ -695,7 +681,7 @@ Beispielstruktur:
 ```lua
 {
     apiVersion = 1,
-    resourceVersion = '0.7.1',
+    resourceVersion = '0.7.2',
     weather = 'RAIN',
     class = 'precipitation',
     intensity = 0.42,
@@ -1019,6 +1005,6 @@ Vor einem stabilen v1.0-Release werden zusätzlich Resmon-, Serverlast-, Langzei
 - Aktuell ist nur Open-Meteo als Provider enthalten.
 - Andere aktive Zeit- oder Wettersysteme können Konflikte verursachen.
 - Natural Disasters wird unterstützt; weitere Wettersysteme benötigen eigene Adapter.
-- Die Version 0.7.1 ist eine frühe Entwicklungsversion und noch kein finaler v1.0-Release.
+- Die Version 0.7.2 ist eine frühe Entwicklungsversion und noch kein finaler v1.0-Release.
 
 Wetterdaten: Open-Meteo. Lizenzbedingungen siehe `LICENSE`.

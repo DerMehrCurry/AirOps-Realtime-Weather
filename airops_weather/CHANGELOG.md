@@ -1,6 +1,22 @@
 # Changelog
 
-## [0.7.1] - 2026-07-24
+## [0.7.2] - 2026-07-24
+
+### Fixed
+
+- corrected the client clock running faster than real time
+- replaced the unreliable paused-clock synchronization strategy
+- configured GTA to use exactly 60,000 milliseconds per game minute
+- added drift detection and authoritative server-time correction
+- protected elapsed-time calculation against `GetGameTimer()` wraparound
+
+### Compatibility
+
+- no configuration changes are required
+- no exports or SDK methods were changed
+- existing realtime and manual time override behavior remains compatible
+
+## [0.7.2] - 2026-07-24
 
 ### Fixed
 
@@ -18,7 +34,7 @@
 - no SDK v1 methods removed
 - existing default-zone behavior preserved
 
-## [0.7.1] - 2026-07-24
+## [0.7.2] - 2026-07-24
 
 ### Added
 
@@ -35,7 +51,7 @@
 
 ### Changed
 
-- version bumped to `0.7.1`
+- version bumped to `0.7.2`
 - zone resolution now uses the central zone registry
 - JSON documents include registered zone metadata
 - SDK v1 surface is frozen for the remainder of v0.7

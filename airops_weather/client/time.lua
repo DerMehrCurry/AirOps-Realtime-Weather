@@ -11,6 +11,9 @@ local state = {
     }
 }
 
+local REALTIME_MILLISECONDS_PER_GAME_MINUTE = 60000
+local SECONDS_PER_DAY = 86400
+
 function AirOpsWeather.SetTimeState(data)
     state.serverUnixTime = tonumber(data.serverUnixTime) or 0
     state.timezoneOffsetSeconds = tonumber(data.timezoneOffsetSeconds) or 0
@@ -22,24 +25,45 @@ function AirOpsWeather.SetTimeState(data)
     state.timeOverride.setAt = tonumber(override.setAt) or 0
 end
 
+local function elapsedClientSeconds()
+    local elapsedMilliseconds = GetGameTimer() - state.receivedAt
+
+    -- GetGameTimer wraps after a long client runtime. A fresh server sync follows,
+    -- but clamping prevents a temporary negative or accelerated clock beforehand.
+    if elapsedMilliseconds < 0 then
+        return 0
+    end
+
+    return math.floor(elapsedMilliseconds / 1000)
+end
+
 local function getRealtimeClock()
-    local elapsedSeconds = math.floor((GetGameTimer() - state.receivedAt) / 1000)
+    local elapsedSeconds = elapsedClientSeconds()
     local secondsOfDay
 
     if state.timeOverride.active then
-        local serverElapsed = math.max(0, state.serverUnixTime - state.timeOverride.setAt)
-        secondsOfDay = (state.timeOverride.secondsOfDay + serverElapsed + elapsedSeconds) % 86400
+        local serverElapsed = math.max(
+            0,
+            state.serverUnixTime - state.timeOverride.setAt
+        )
+
+        secondsOfDay = (
+            state.timeOverride.secondsOfDay
+            + serverElapsed
+            + elapsedSeconds
+        ) % SECONDS_PER_DAY
     else
-        local localEpoch = state.serverUnixTime
+        secondsOfDay = (
+            state.serverUnixTime
             + state.timezoneOffsetSeconds
             + elapsedSeconds
-        secondsOfDay = localEpoch % 86400
+        ) % SECONDS_PER_DAY
     end
-    local hour = math.floor(secondsOfDay / 3600)
-    local minute = math.floor((secondsOfDay % 3600) / 60)
-    local second = secondsOfDay % 60
 
-    return hour, minute, second
+    return
+        math.floor(secondsOfDay / 3600),
+        math.floor((secondsOfDay % 3600) / 60),
+        math.floor(secondsOfDay % 60)
 end
 
 local function airOpsControlsTime()
@@ -60,21 +84,61 @@ local function airOpsControlsTime()
     return true
 end
 
+local function clockDifferenceSeconds(
+    currentHour,
+    currentMinute,
+    currentSecond,
+    targetHour,
+    targetMinute,
+    targetSecond
+)
+    local current = (currentHour * 3600) + (currentMinute * 60) + currentSecond
+    local target = (targetHour * 3600) + (targetMinute * 60) + targetSecond
+    local difference = math.abs(current - target)
+
+    return math.min(difference, SECONDS_PER_DAY - difference)
+end
+
 CreateThread(function()
-    local clockPausedByAirOps = false
+    local controlledByAirOps = false
 
     while true do
         if airOpsControlsTime() and state.serverUnixTime > 0 then
-            -- GTA's native clock advances several game minutes per real minute.
-            -- Pausing it prevents the visible jump between real time and +5 minutes.
-            PauseClock(true)
-            clockPausedByAirOps = true
-
-            local hour, minute, second = getRealtimeClock()
-            NetworkOverrideClockTime(hour, minute, second)
-        elseif clockPausedByAirOps then
+            -- GTA normally advances multiple in-game minutes per real minute.
+            -- Explicitly setting 60,000 ms per game minute produces a true 1:1
+            -- clock rate and avoids the unreliable PauseClock + override pairing.
             PauseClock(false)
-            clockPausedByAirOps = false
+            NetworkOverrideClockMillisecondsPerGameMinute(
+                REALTIME_MILLISECONDS_PER_GAME_MINUTE
+            )
+            controlledByAirOps = true
+
+            local targetHour, targetMinute, targetSecond = getRealtimeClock()
+            local difference = clockDifferenceSeconds(
+                GetClockHours(),
+                GetClockMinutes(),
+                GetClockSeconds(),
+                targetHour,
+                targetMinute,
+                targetSecond
+            )
+
+            local correctionThreshold = tonumber(
+                Config.Time.driftCorrectionThresholdSeconds
+            ) or 2
+
+            -- Correct only meaningful drift. The native clock itself now runs at
+            -- real speed, reducing visible jumps and unnecessary native calls.
+            if difference >= correctionThreshold then
+                NetworkOverrideClockTime(
+                    targetHour,
+                    targetMinute,
+                    targetSecond
+                )
+            end
+        elseif controlledByAirOps then
+            PauseClock(false)
+            controlledByAirOps = false
         end
 
         Wait(Config.Time.localUpdateIntervalMilliseconds or 1000)

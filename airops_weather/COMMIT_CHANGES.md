@@ -1,32 +1,30 @@
-# Commit changes – v0.7.1
+# Commit changes – v0.7.2
 
 ## Recommended commit
 
 ```text
-fix(stability): finalize v0.7 with JSON, event and webhook corrections
+fix(time): enforce real-time clock rate and correct client drift
 ```
 
 ## Commit body
 
 ```text
-- ignore volatile timestamps in API and JSON change signatures
-- add genuine pretty JSON formatting
-- prevent duplicate zone integration events
-- preserve self-test runtime error messages
-- standardize warning severities
-- dispatch shutdown webhook directly during resource stop
-- add v0.7.1 migration notes and changelog
-- bump resource version to v0.7.1
+- replace PauseClock-based synchronization with a true 1:1 clock rate
+- set 60,000 milliseconds per in-game minute
+- add client clock drift detection and correction
+- retain authoritative server time and manual override support
+- protect against GetGameTimer wraparound
+- bump version to v0.7.2
 ```
 
 ## Git tag
 
 ```text
-v0.7.1
+v0.7.2
 ```
 
 ## GitHub release title
 
 ```text
-AirOps Realtime Weather Community v0.7.1
+AirOps Realtime Weather Community v0.7.2
 ```
