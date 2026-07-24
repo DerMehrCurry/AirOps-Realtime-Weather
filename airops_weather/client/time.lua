@@ -3,22 +3,38 @@ AirOpsWeather = AirOpsWeather or {}
 local state = {
     serverUnixTime = 0,
     timezoneOffsetSeconds = 0,
-    receivedAt = 0
+    receivedAt = 0,
+    timeOverride = {
+        active = false,
+        secondsOfDay = 0,
+        setAt = 0
+    }
 }
 
 function AirOpsWeather.SetTimeState(data)
     state.serverUnixTime = tonumber(data.serverUnixTime) or 0
     state.timezoneOffsetSeconds = tonumber(data.timezoneOffsetSeconds) or 0
     state.receivedAt = GetGameTimer()
+
+    local override = type(data.timeOverride) == 'table' and data.timeOverride or {}
+    state.timeOverride.active = override.active == true
+    state.timeOverride.secondsOfDay = tonumber(override.secondsOfDay) or 0
+    state.timeOverride.setAt = tonumber(override.setAt) or 0
 end
 
 local function getRealtimeClock()
     local elapsedSeconds = math.floor((GetGameTimer() - state.receivedAt) / 1000)
-    local localEpoch = state.serverUnixTime
-        + state.timezoneOffsetSeconds
-        + elapsedSeconds
+    local secondsOfDay
 
-    local secondsOfDay = localEpoch % 86400
+    if state.timeOverride.active then
+        local serverElapsed = math.max(0, state.serverUnixTime - state.timeOverride.setAt)
+        secondsOfDay = (state.timeOverride.secondsOfDay + serverElapsed + elapsedSeconds) % 86400
+    else
+        local localEpoch = state.serverUnixTime
+            + state.timezoneOffsetSeconds
+            + elapsedSeconds
+        secondsOfDay = localEpoch % 86400
+    end
     local hour = math.floor(secondsOfDay / 3600)
     local minute = math.floor((secondsOfDay % 3600) / 60)
     local second = secondsOfDay % 60

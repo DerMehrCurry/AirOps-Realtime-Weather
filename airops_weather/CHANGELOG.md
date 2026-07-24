@@ -1,5 +1,58 @@
 # Changelog
 
+## [0.3.0] - 2026-07-24
+
+### Added
+
+- manual weather overrides through `/airops weather <type> [durationMinutes]`
+- manual time overrides through `/airops time <hour> <minute> [durationMinutes]`
+- separate realtime restoration for weather, time, or all overrides
+- automatic expiration of temporary overrides
+- priority handling between Natural Disasters, manual overrides, and realtime data
+- `setWeatherOverride`, `setTimeOverride`, `clearOverride`, and `getOverrideState` server exports
+- configurable override command, duration limit, permanent overrides, and transition duration
+- override state in the public synchronization payload and diagnostics
+
+### Changed
+
+- realtime provider observations and forecast timeline continue updating while overrides are active
+- weather candidates are suppressed while a manual weather override owns the baseline
+- manual time runs forward at real speed from the configured hour and minute
+- README fully updated for installation, commands, ACE permissions, exports, integration, and testing
+
+## [0.2.1] - 2026-07-24
+
+### Added
+
+- deterministic flexible weather timing around hourly forecast reference points
+- configurable forecast offset of up to 20 minutes before or after the provider hour
+- natural multi-stage transitions such as CLOUDS -> OVERCAST -> RAIN -> THUNDER
+- weather-class-specific blend durations
+- ordered transition spacing to prevent several weather states firing together
+
+### Changed
+
+- hourly Open-Meteo values are now treated as forecast targets instead of exact switch times
+- timeline diagnostics distinguish intermediate transition steps from final targets
+
+## [0.2.0] - 2026-07-24
+
+### Added
+
+- hourly Open-Meteo forecast timeline
+- automatic scheduled weather changes without extra API requests
+- compression of consecutive identical forecast states
+- protection against stale timeline callbacks after forecast refreshes
+- optional filtering of short forecast reversals
+- `airops_weather_status` diagnostic command
+- `getForecastTimeline` server export
+- next forecast state in the public synchronization payload
+
+### Changed
+
+- default forecast window increased from 6 to 12 hours
+- weather changes now pass through one shared application path
+
 ## [0.1.3] - 2026-07-24
 
 ### Fixed

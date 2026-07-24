@@ -14,7 +14,40 @@ Config.Location = {
 
 Config.Provider = {
     name = 'openmeteo',
-    forecastHours = 6
+    forecastHours = 12
+}
+
+Config.Forecast = {
+    enabled = true,
+
+    -- Consecutive forecast hours that map to the same GTA weather are compressed
+    -- into one timeline target.
+    compressIdenticalStates = true,
+
+    -- Ignore very short forecast states when they would immediately reverse.
+    minimumTimelineStateSeconds = 1800,
+
+    -- Provider hours are forecast reference points, not hard switch times.
+    flexibleTransitions = true,
+
+    -- Deterministic offset around the provider hour. The same forecast always
+    -- receives the same offset, including after a resource restart.
+    maximumOffsetMinutes = 20,
+
+    -- Time between generated intermediate states such as CLOUDS -> OVERCAST -> RAIN.
+    transitionStepMinutes = 8,
+
+    -- Keep generated entries ordered and prevent several changes firing together.
+    minimumEntrySpacingSeconds = 180,
+    minimumFutureSeconds = 120,
+
+    transitionSecondsByClass = {
+        stable = 240,
+        normal = 300,
+        changing = 360,
+        precipitation = 420,
+        severe = 480
+    }
 }
 
 Config.Time = {
@@ -65,4 +98,13 @@ Config.Retry = {
     initialSeconds = 60,
     multiplier = 2,
     maximumSeconds = 900
+}
+
+-- Manual overrides are optional and protected by the airops.weather.override ACE.
+Config.Override = {
+    enabled = true,
+    command = 'airops',
+    weatherTransitionSeconds = 180,
+    allowPermanent = true,
+    maximumDurationMinutes = 1440
 }
