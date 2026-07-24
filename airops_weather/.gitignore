@@ -1,0 +1,29 @@
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.code-workspace
+
+# Lua
+.luarc.json
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+*~
+
+# Release archives
+*.zip
+
+# Environment files
+.env
+.env.*
