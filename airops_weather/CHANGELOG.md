@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.2.3] - 2026-07-24
+
+### Fixed
+
+- fixed the self-test configuration check indexing the boolean return value from `Validation.Run()`
+- correctly consumes the detailed validation report returned as the second value
+- added a defensive fallback to `Validation.GetResult()`
+- self-test now reports configuration errors and warnings without throwing a Lua runtime error
+
 ## [0.7.2.2] - 2026-07-24
 
 ### Fixed

@@ -19,12 +19,20 @@ local function result(name, success, details)
 end
 
 add('configuration', function()
-    local validation = AirOpsWeather.Validation.Run()
-    return #validation.errors == 0,
-        ('errors=%d warnings=%d'):format(
-            #validation.errors,
-            #validation.warnings
-        )
+    local valid, validation = AirOpsWeather.Validation.Run()
+
+    -- Validation.Run() returns two values: the boolean status first and
+    -- the detailed validation report second. Keep a defensive fallback for
+    -- integrations that only expose the cached result.
+    if type(validation) ~= 'table' then
+        validation = AirOpsWeather.Validation.GetResult()
+    end
+
+    local errors = type(validation.errors) == 'table' and validation.errors or {}
+    local warnings = type(validation.warnings) == 'table' and validation.warnings or {}
+
+    return valid == true and #errors == 0,
+        ('errors=%d warnings=%d'):format(#errors, #warnings)
 end)
 
 add('provider', function()

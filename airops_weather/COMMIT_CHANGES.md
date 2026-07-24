@@ -1,29 +1,26 @@
-# Commit changes – v0.7.2.2
+# Commit changes – v0.7.2.3
 
-## Recommended commit
+## Commit
 
 ```text
-fix(startup): initialize provider registry before dependent modules
+fix(selftest): consume validation report from second return value
 ```
 
-## Commit body
+## Changes
+
+- fix configuration self-test indexing a boolean value
+- read the validation report from the second return value of `Validation.Run()`
+- add a defensive cached-result fallback
+- bump version to v0.7.2.3
+
+## Tag
 
 ```text
-- load server/providers/base.lua before validation and provider implementations
-- fix nil AirOpsWeather.Providers during Open-Meteo registration
-- fix resulting nil AirOpsWeather.Validation startup error
-- keep existing configuration, exports and SDK compatibility
-- bump version to v0.7.2.2
+v0.7.2.3
 ```
 
-## Git tag
+## Release title
 
 ```text
-v0.7.2.2
-```
-
-## GitHub release title
-
-```text
-AirOps Realtime Weather Community v0.7.2.2
+AirOps Realtime Weather Community v0.7.2.3
 ```
