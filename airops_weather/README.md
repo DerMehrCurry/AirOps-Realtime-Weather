@@ -7,6 +7,20 @@
   Built for Roleplay. Made for Community.
 </p>
 
+
+
+> [!IMPORTANT]
+> ## 🧪 Long Term Test
+>
+> **AirOps Realtime Weather v0.7.1** befindet sich derzeit in einer erweiterten Langzeittestphase.
+>
+> Während dieser Phase liegt der Fokus ausschließlich auf Stabilität, Performance und Bugfixes. Neue Funktionen werden erst mit **v0.8.0 – Performance & Enterprise** entwickelt.
+>
+> Feedback und Bug Reports sind jederzeit willkommen.
+
+
+
+
 # AirOps Realtime Weather – Community Edition
 
 Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
