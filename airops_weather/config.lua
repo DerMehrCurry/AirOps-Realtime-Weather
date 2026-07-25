@@ -170,6 +170,10 @@ Config.Time = {
 
 Config.Weather = {
     enabled = true,
+
+    -- Keep AirOps as the authoritative client weather controller. This prevents
+    -- different clients from remaining in different GTA weather states.
+    strictSynchronization = true,
     transitionSeconds = 180,
     enableWind = true,
     enableSnow = true,
@@ -185,7 +189,11 @@ Config.Integrations = {
     naturalDisasters = {
         enabled = true,
         resourceName = 'night_natural_disasters',
-        delegateWeather = true,
+
+        -- Disabled by default so only AirOps controls client weather. Enable this
+        -- deliberately when the external resource is responsible for synchronizing
+        -- the baseline weather consistently for every connected player.
+        delegateWeather = false,
         -- Slow checks during normal operation, faster checks only while an
         -- external disaster owns the weather.
         idleMonitorIntervalMilliseconds = 10000,
@@ -242,7 +250,7 @@ Config.Performance = {
     temperatureChangeThresholdCelsius = 1.0,
 
     -- Standalone clients reinforce the persistent weather only at this interval.
-    clientWeatherReinforcementMilliseconds = 60000
+    clientWeatherReinforcementMilliseconds = 5000
 }
 
 Config.Health = {

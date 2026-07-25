@@ -13,9 +13,9 @@ Core-unabhängige Echtzeit-Wetter- und Zeitsynchronisation für FiveM.
 
 > Die Community Edition ist kostenlos. Wenn du dafür bei einem Drittanbieter bezahlt hast, wurdest du getäuscht.
 
-## Timezone & Weather Mapping Hotfix – v0.7.2.5
+## Timezone & Weather Mapping Hotfix – v0.7.2.6
 
-v0.7.2.5 includes the UTC-safe timezone correction from v0.7.2.4 and fixes startup validation incorrectly reporting that no supported GTA weather mapping is available. The supported mapping registry is now initialized explicitly before server validation runs.
+v0.7.2.6 includes the UTC-safe timezone correction from v0.7.2.4 and fixes startup validation incorrectly reporting that no supported GTA weather mapping is available. The supported mapping registry is now initialized explicitly before server validation runs.
 
 - provider registry now initializes before validation and concrete providers
 - fixes `AirOpsWeather.Providers` being `nil` during Open-Meteo registration
@@ -34,7 +34,7 @@ The stabilization improvements from v0.7.2 remain included:
 
 No public export or SDK v1 method was removed.
 
-## Version 0.7.2.5
+## Version 0.7.2.6
 
 Diese Entwicklungsversion enthält:
 

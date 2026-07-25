@@ -3,7 +3,8 @@ AirOpsWeather = AirOpsWeather or {}
 local weatherState = {
     currentWeather = nil,
     windSpeed = 0.0,
-    windDirection = 0.0
+    windDirection = 0.0,
+    revision = 0
 }
 
 local function naturalDisastersDelegationEnabled()
@@ -48,15 +49,34 @@ function AirOpsWeather.ApplyWeatherState(state, immediate)
         return
     end
 
-    if immediate then
+    weatherState.revision = weatherState.revision + 1
+    local revision = weatherState.revision
+    local strict = Config.Weather.strictSynchronization ~= false
+
+    if immediate or strict then
+        -- GTA weather is client-local. Applying the complete persistent state on
+        -- every client prevents one player from retaining rain while another has
+        -- already switched to the authoritative weather.
         SetWeatherTypeNowPersist(nextWeather)
         SetWeatherTypePersist(nextWeather)
         SetOverrideWeather(nextWeather)
     else
-        SetWeatherTypeOvertimePersist(
-            nextWeather,
-            tonumber(state.transitionSeconds) or 180.0
-        )
+        local transitionSeconds = tonumber(state.transitionSeconds) or 180.0
+        SetWeatherTypeOvertimePersist(nextWeather, transitionSeconds)
+
+        -- Overtime transitions begin from each client's local weather. Finalize
+        -- them explicitly so all clients converge on the exact same state.
+        SetTimeout(math.floor((transitionSeconds + 1.0) * 1000), function()
+            if revision ~= weatherState.revision
+                or weatherState.currentWeather ~= nextWeather
+                or naturalDisastersDelegationEnabled() then
+                return
+            end
+
+            SetWeatherTypeNowPersist(nextWeather)
+            SetWeatherTypePersist(nextWeather)
+            SetOverrideWeather(nextWeather)
+        end)
     end
 
     applyWind(state)
